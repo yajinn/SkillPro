@@ -1,6 +1,6 @@
 ---
 description: Detect the current project and manage SkillForge's federated skill index
-argument-hint: "[setup|refresh|sources|add <id>|remove <id>|skip <id>|check <id>|confirm|clear|audit|profile]"
+argument-hint: "[setup|refresh|sources|add <id>|remove <id>|skip <id>|check <id>|confirm|clear|export <cursor|codex>|audit|profile]"
 allowed-tools: Bash, Read, Write, Edit
 ---
 
@@ -23,6 +23,8 @@ index against the detected project profile, and installs skills on demand.
 - **`check <id>`** → re-check a previously skipped item
 - **`confirm`** → install every checked item from pending.json in one batch
 - **`clear`** → drop pending.json without installing anything
+- **`export cursor`** → convert every installed skill into `.cursor/rules/*.mdc` files under the current project
+- **`export codex`** → bundle every installed skill into a `AGENTS.md` managed section under the current project (preserves user content outside the markers)
 - `audit` → run the audit gate on every installed skill (Phase 7 stub, reports "unavailable")
 - `profile` → dump the full `.claude/project-profile.json`
 
@@ -79,6 +81,8 @@ Pending checkbox state (staging area for `setup` → `confirm` flow):
    - `check <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" check <id>`, then `pending.py render`. Stop.
    - `confirm` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" confirm` and report the result. If any installs failed, the pending file is preserved so the user can `/skillforge confirm` again after resolving issues. Stop.
    - `clear` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" clear`. Stop.
+   - `export cursor` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/convert.py" --agent cursor --out "$PWD" --json`. Parse the JSON summary and report: number of `.mdc` files written, destination dir, any skipped skills with warnings. Stop.
+   - `export codex` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/convert.py" --agent codex --out "$PWD" --json`. Parse the JSON summary and report: `AGENTS.md` path, number of skills bundled, warnings about non-portable scripts/references. Remind the user that user-authored content outside the `<!-- skillforge:start -->` / `<!-- skillforge:end -->` markers is preserved. Stop.
    - `audit` → for each installed skill, invoke `scripts/audit_skill.py`. Report a table. In this iteration every row reports `unavailable`.
    - `status` / (empty) → proceed to step 5.
 
