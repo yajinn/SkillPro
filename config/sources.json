@@ -2,6 +2,13 @@
   "version": 1,
   "defaults": [
     {
+      "type": "skills-sh-html",
+      "name": "skills.sh",
+      "url": "https://skills.sh/sitemap.xml",
+      "require_audit": false,
+      "max_skills": 80
+    },
+    {
       "type": "marketplace",
       "name": "Anthropic Skills",
       "url": "https://raw.githubusercontent.com/anthropics/skills/main/.claude-plugin/marketplace.json",
@@ -24,13 +31,6 @@
       "name": "awesome-claude-plugins",
       "url": "https://raw.githubusercontent.com/quemsah/awesome-claude-plugins/main/README.md",
       "require_audit": false
-    },
-    {
-      "type": "sitemap-aggregator",
-      "name": "skills.sh",
-      "url": "https://skills.sh/sitemap.xml",
-      "require_audit": false,
-      "max_repos": 15
     }
   ]
 }

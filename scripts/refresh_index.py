@@ -33,6 +33,7 @@ from source_adapters.base import http_get_default  # noqa: E402
 from source_adapters.marketplace import MarketplaceAdapter  # noqa: E402
 from source_adapters.awesome_list import AwesomeListAdapter  # noqa: E402
 from source_adapters.sitemap_aggregator import SitemapAggregatorAdapter  # noqa: E402
+from source_adapters.skillssh_html import SkillsShHtmlAdapter  # noqa: E402
 
 
 DEFAULT_TTL_SECONDS = 7 * 24 * 3600  # 7 days
@@ -47,6 +48,7 @@ ADAPTERS = {
     "marketplace": MarketplaceAdapter(),
     "awesome-list": AwesomeListAdapter(),
     "sitemap-aggregator": SitemapAggregatorAdapter(),
+    "skills-sh-html": SkillsShHtmlAdapter(),
 }
 
 
