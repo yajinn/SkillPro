@@ -20,13 +20,13 @@ explicitly pick.
 ### Primary: Claude Code plugin marketplace
 
 ```
-/plugin marketplace add yajinn/skillforge
-/plugin install skillforge
+/plugin marketplace add yajinn/SkillForge
+/plugin install skillforge@yajinn
 ```
 
-That's it. The `/skillforge` slash command is now available, the runtime
-hooks are registered automatically, and the federated index is fetched on
-first invocation.
+That's it. The `/sf` slash command (use `/yajinn:sf`) is now available,
+the runtime hooks are registered automatically, and the federated index
+is fetched on first invocation.
 
 ### Alternative: clone and wire manually
 
@@ -48,7 +48,7 @@ All eight PRD phases complete. See [CHANGELOG.md](./CHANGELOG.md) for the
 |-------|-------------|--------|
 | 1 | Universal project detector (`hooks/detect.sh`) | ✅ Complete |
 | 2 | Relevance engine (`scripts/score.py`) + federated index schema | ✅ Complete |
-| 3 | `/skillforge` slash command | ✅ Complete |
+| 3 | `/sf` slash command (invoke as `/yajinn:sf`) | ✅ Complete |
 | 4 | Selection persistence (`~/.claude/skillforge/selections.json`) | ✅ Complete |
 | 5 | Federated discovery (`refresh_index.py` + source adapters) | ✅ Complete |
 | 6 | Runtime hooks v2 (profile-driven guards + auto-format) | ✅ Complete |
@@ -77,7 +77,7 @@ config/sources.json → refresh_index.py → index.json
                         score.py (profile × index)
                                      │
                                      ▼
-                        /skillforge UI (recommended / optional / skip)
+                        /sf UI (recommended / optional / skip)
                                      │
                                 user picks
                                      │
@@ -100,7 +100,7 @@ config/sources.json → refresh_index.py → index.json
 3. **Score** — `scripts/score.py` multiplies the profile against the
    federated index using tag matching, boost/penalize rules, and default-for
    project-type matching.
-4. **Audit + Install** — on `/skillforge add <id>`, `scripts/install_skill.py`
+4. **Audit + Install** — on `/sf add <id>`, `scripts/install_skill.py`
    fetches the skill, runs it through `scripts/audit_skill.py` (heuristic
    scanner with optional external Tier 2), and writes it to
    `~/.claude/skills/<id>/`.
@@ -112,21 +112,25 @@ external sources. Swap in your own source list by creating
 ## Commands
 
 ```
-/skillforge              status: detected project, index summary, selections
-/skillforge setup        refresh, seed pending.json with recommended pre-checked
-/skillforge refresh      force-refresh the index (bypass TTL)
-/skillforge sources      list active sources and their last fetch status
-/skillforge add <id>     install a single skill (one-off, bypasses pending)
-/skillforge skip <id>    uncheck a pending item before confirming
-/skillforge check <id>   re-check a previously skipped item
-/skillforge confirm      install every checked pending item in one batch
-/skillforge clear        drop pending.json without installing
-/skillforge remove <id>  uninstall and drop from selections
-/skillforge export cursor  convert installed skills to .cursor/rules/*.mdc
-/skillforge export codex   bundle installed skills into AGENTS.md (managed block)
-/skillforge audit        run the audit gate on every installed skill
-/skillforge profile      dump the full .claude/project-profile.json
+/sf                      status: detected project, index summary, selections
+/sf setup                refresh, seed pending.json with recommended pre-checked
+/sf refresh              force-refresh the index (bypass TTL)
+/sf sources              list active sources and their last fetch status
+/sf add <id>             install a single skill (one-off, bypasses pending)
+/sf skip <id>            uncheck a pending item before confirming
+/sf check <id>           re-check a previously skipped item
+/sf confirm              install every checked pending item in one batch
+/sf clear                drop pending.json without installing
+/sf remove <id>          uninstall and drop from selections
+/sf export cursor        convert installed skills to .cursor/rules/*.mdc
+/sf export codex         bundle installed skills into AGENTS.md (managed block)
+/sf audit                run the audit gate on every installed skill
+/sf profile              dump the full .claude/project-profile.json
 ```
+
+Invoke any of the above as `/yajinn:sf ...` in Claude Code (the plugin
+marketplace prefix is `yajinn` from the author handle; the command
+itself is `sf`).
 
 ## Security
 
@@ -141,7 +145,7 @@ are on your PATH — no configuration required.
 
 ## Multi-agent export
 
-Once you've curated a set of skills with `/skillforge confirm`, you can
+Once you've curated a set of skills with `/sf confirm`, you can
 re-use them in other AI coding tools without re-picking. SkillForge reads
 from a single source of truth (`~/.claude/skills/`) and emits each target
 platform's native format.
@@ -150,7 +154,7 @@ platform's native format.
 
 ```bash
 cd ~/code/my-project
-/skillforge export cursor
+/sf export cursor
 ```
 
 Writes one `.mdc` file per skill under `<project>/.cursor/rules/`:
@@ -165,13 +169,13 @@ Writes one `.mdc` file per skill under `<project>/.cursor/rules/`:
 Each rule carries a `description:` field from the skill's YAML
 frontmatter and `alwaysApply: false` — Cursor activates the rule when
 the description matches your request, not on every turn. Re-run the
-command after `/skillforge confirm` to refresh the rule set.
+command after `/sf confirm` to refresh the rule set.
 
 ### Codex CLI
 
 ```bash
 cd ~/code/my-project
-/skillforge export codex
+/sf export codex
 ```
 
 Bundles every installed skill into a single `<project>/AGENTS.md`
@@ -243,7 +247,7 @@ skillforge/
 ├── LICENSE
 ├── index.html                   # GitHub Pages landing
 ├── commands/
-│   └── skillforge.md            # /skillforge slash command
+│   └── sf.md                   # /sf slash command (invoke as /yajinn:sf)
 ├── hooks/
 │   ├── hooks.json               # Hook event registration
 │   ├── detect.sh
@@ -286,7 +290,7 @@ skillforge/
 
 - `bash`, `jq` (for `detect.sh` and the JSON builder path)
 - `python3` (>= 3.11, stdlib only — no pip dependencies)
-- Network access for the first `/skillforge refresh`. Offline afterwards
+- Network access for the first `/sf refresh`. Offline afterwards
   unless the index goes stale (default TTL: 7 days).
 
 ## Running the tests

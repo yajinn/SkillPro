@@ -104,7 +104,7 @@ def _render_managed_section(skills: List[SkillInput]) -> Tuple[str, List[str]]:
         sections.append(section)
 
     if not sections:
-        inner = "_No skills installed. Run `/skillforge confirm` first._\n"
+        inner = "_No skills installed. Run `/sf confirm` first._\n"
     else:
         inner = "# SkillForge skills\n\n" + "\n---\n\n".join(sections)
 

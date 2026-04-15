@@ -190,7 +190,7 @@ For high-stakes environments, combine the scanner with:
 2. Manual review using the checklist above.
 3. Running SkillForge in a separate user account with restricted
    filesystem access.
-4. Regularly running `/skillforge audit` on already-installed skills
+4. Regularly running `/sf audit` on already-installed skills
    to catch rules introduced after the install.
 
 The scanner raises the floor. It does not raise the ceiling.

@@ -4,7 +4,7 @@ argument-hint: "[setup|refresh|sources|add <id>|remove <id>|skip <id>|check <id>
 allowed-tools: Bash, Read, Write, Edit
 ---
 
-# /skillforge
+# /sf
 
 **Output style:** Be terse. No numbered "next steps" lists. No Insight blocks.
 No multi-paragraph preambles. Render the scan as a compact table and a single
@@ -58,7 +58,7 @@ Resolve `SF_ROOT` at the top of every Bash call using the line above. Then:
 1. Parse `$ARGUMENTS`.
 2. If index is `missing`:
    - `refresh` / `setup` → run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --verbose`, then re-read state.
-   - Anything else → tell the user "index missing, run `/skillforge refresh`". Stop.
+   - Anything else → tell the user "index missing, run `/sf refresh`". Stop.
 3. If index is `stale` → kick off `python3 "$SF_ROOT/scripts/refresh_index.py" &` in background, continue with cached index.
 4. Dispatch:
 
@@ -69,7 +69,7 @@ Resolve `SF_ROOT` at the top of every Bash call using the line above. Then:
 | `refresh` | `refresh_index.py --force --verbose`, report outcome. Stop. |
 | `add <id>` | `install_skill.py <id>`, report outcome. Stop. |
 | `remove <id>` | `rm -rf ~/.claude/skills/<id>` + drop from `selections.json`. Stop. |
-| `setup` | `pending.py seed "$PWD"` then `pending.py render`. One-line footer: "Review, then `/skillforge confirm`". Stop. |
+| `setup` | `pending.py seed "$PWD"` then `pending.py render`. One-line footer: "Review, then `/sf confirm`". Stop. |
 | `skip <id>` | `pending.py skip <id>` then `pending.py render`. Stop. |
 | `check <id>` | `pending.py check <id>` then `pending.py render`. Stop. |
 | `confirm` | `pending.py confirm`, report. Pending file preserved on failure. Stop. |
@@ -101,9 +101,9 @@ Rendering rules (minimal):
 - Libraries list: truncate to 3 + `…` if longer.
 - `<partial-warn>` = `⚠ partial index` on its own line, only if `partial: true`.
 - `<one concrete action>` picks ONE of:
-  - `/skillforge setup` if pending.json missing or empty
-  - `/skillforge confirm` if pending.json has checked items
-  - `/skillforge refresh` if state is stale
+  - `/sf setup` if pending.json missing or empty
+  - `/sf confirm` if pending.json has checked items
+  - `/sf refresh` if state is stale
 - Never auto-install. `confirm` is the only verb that touches `~/.claude/skills/`.
 
 If `grouped` is present in score output, use grouped IDs instead of flat

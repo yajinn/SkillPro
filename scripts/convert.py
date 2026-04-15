@@ -8,7 +8,7 @@ writing the result to the project directory so that agent can pick it up.
 Contract
 --------
 - Single source of truth: the SKILL.md files under `~/.claude/skills/`.
-  Run `/skillforge confirm` first to install skills there; this exporter
+  Run `/sf confirm` first to install skills there; this exporter
   never downloads or installs anything itself.
 - Target directory: defaults to cwd, overridable with `--out <dir>`.
 - Selection list: by default every skill in `~/.claude/skills/` is

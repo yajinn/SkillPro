@@ -1129,9 +1129,9 @@ if [ ! -f "$SELECTIONS_FILE" ]; then
   [ -n "$SUB_FRAMEWORK" ] && SUMMARY="$SUMMARY ($SUB_FRAMEWORK)"
   SUMMARY="$SUMMARY | Type: $PROJECT_TYPE"
 
-  echo "{\"additionalContext\": \"SkillForge: $SUMMARY. Run /skillforge to select skills for this project.\"}"
+  echo "{\"additionalContext\": \"SkillForge: $SUMMARY. Run /sf to select skills for this project.\"}"
 else
   # Subsequent runs — load active skills
   ACTIVE=$(jq '[.selections | to_entries[] | select(.value.enabled==true) | .key] | length' "$SELECTIONS_FILE" 2>/dev/null || echo "0")
-  echo "{\"additionalContext\": \"SkillForge: $ACTIVE skills active ($LANGUAGE${FRAMEWORK:+ / $FRAMEWORK}). Run /skillforge to manage.\"}"
+  echo "{\"additionalContext\": \"SkillForge: $ACTIVE skills active ($LANGUAGE${FRAMEWORK:+ / $FRAMEWORK}). Run /sf to manage.\"}"
 fi

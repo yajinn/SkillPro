@@ -167,7 +167,7 @@ class TestMonorepoHoist(unittest.TestCase):
     def test_profile_file_stays_in_cwd_not_detection_dir(self):
         """The profile JSON lands at <cwd>/.claude/, not <detection>/.claude/.
 
-        This matters because /skillforge reads .claude/project-profile.json
+        This matters because /sf reads .claude/project-profile.json
         from the user's current directory, not from the hoisted subdir.
         """
         with tempfile.TemporaryDirectory() as tmp:

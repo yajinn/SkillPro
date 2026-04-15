@@ -196,7 +196,7 @@
         </div>
         <div class="flex items-center gap-3 p-5">
           <span class="text-run font-bold select-none">$</span>
-          <code id="install-cmd" class="flex-1 text-chalk text-base md:text-lg break-all">/plugin marketplace add yajinn/skillforge</code>
+          <code id="install-cmd" class="flex-1 text-chalk text-base md:text-lg break-all">/plugin marketplace add yajinn/SkillForge</code>
           <button onclick="copyInstall(this)"
                   class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0"
                   aria-label="Copy install command">
@@ -305,9 +305,9 @@
           <span class="w-3 h-3 bg-warn"></span>
           <span class="w-3 h-3 bg-run"></span>
         </div>
-        <div class="flex-1 text-center text-xs text-fog">/skillforge setup &middot; next-app ~/code/demo</div>
+        <div class="flex-1 text-center text-xs text-fog">/yajinn:sf setup &middot; next-app ~/code/demo</div>
       </div>
-      <pre class="p-5 md:p-8 text-sm md:text-base leading-relaxed overflow-x-auto"><span class="text-fog">$ /skillforge setup</span>
+      <pre class="p-5 md:p-8 text-sm md:text-base leading-relaxed overflow-x-auto"><span class="text-fog">$ /yajinn:sf setup</span>
 
 <span class="text-run">&#9656;</span> Detecting project...
   <span class="text-chalk">language:</span>  <span class="text-run">typescript</span>
@@ -336,10 +336,10 @@
 - [x] <span class="text-run font-bold">typescript-strict</span>       <span class="text-fog">(score 12)</span> &mdash; Strict-mode idioms
 
 <span class="text-warn">Edit selections:</span>
-  <span class="text-fog">/skillforge skip &lt;id&gt;</span>     uncheck an item
-  <span class="text-fog">/skillforge check &lt;id&gt;</span>    re-check
-  <span class="text-fog">/skillforge confirm</span>         install everything still checked
-  <span class="text-fog">/skillforge clear</span>           cancel without installing<span class="caret"></span></pre>
+  <span class="text-fog">/yajinn:sf skip &lt;id&gt;</span>     uncheck an item
+  <span class="text-fog">/yajinn:sf check &lt;id&gt;</span>    re-check
+  <span class="text-fog">/yajinn:sf confirm</span>         install everything still checked
+  <span class="text-fog">/yajinn:sf clear</span>           cancel without installing<span class="caret"></span></pre>
     </div>
   </div>
 </section>
@@ -468,7 +468,7 @@
 
     <div class="brutal bg-ink p-6 md:p-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-base">
-        <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">/skillforge</code><span class="text-fog">status dump</span></div>
+        <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">/yajinn:sf</code><span class="text-fog">status dump</span></div>
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">setup</code><span class="text-fog">seed pending.json</span></div>
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">refresh</code><span class="text-fog">force-refresh index</span></div>
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">sources</code><span class="text-fog">list sources + status</span></div>
@@ -509,7 +509,7 @@
           One <code class="text-chalk">.mdc</code> file per skill under <code class="text-chalk">.cursor/rules/</code>.
           Description-triggered activation, not always-on.
         </p>
-        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export cursor</span>
+        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/yajinn:sf export cursor</span>
 <span class="text-run">&#9656;</span> Writing 14 rules to .cursor/rules/
   <span class="text-run">+</span> brainstorming.mdc
   <span class="text-run">+</span> python-pro.mdc
@@ -529,7 +529,7 @@
           Single <code class="text-chalk">AGENTS.md</code> with a managed section.
           Your user content outside the markers is preserved across re-exports.
         </p>
-        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export codex</span>
+        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/yajinn:sf export codex</span>
 <span class="text-hot">&#9656;</span> Bundling 14 skills &rarr; AGENTS.md
 <span class="text-hot">&#9656;</span> Preserved user content outside markers
 
@@ -557,7 +557,7 @@
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
       <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">01</div><div class="text-[10px] text-fog tracking-widest mt-1">DETECT</div></div>
       <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">02</div><div class="text-[10px] text-fog tracking-widest mt-1">SCORE</div></div>
-      <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">03</div><div class="text-[10px] text-fog tracking-widest mt-1">/skillforge</div></div>
+      <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">03</div><div class="text-[10px] text-fog tracking-widest mt-1">/yajinn:sf</div></div>
       <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">04</div><div class="text-[10px] text-fog tracking-widest mt-1">PERSIST</div></div>
       <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">05</div><div class="text-[10px] text-fog tracking-widest mt-1">FEDERATE</div></div>
       <div class="brutal bg-ink p-4 text-center"><div class="text-3xl font-bold text-run">06</div><div class="text-[10px] text-fog tracking-widest mt-1">HOOKS</div></div>
@@ -582,7 +582,7 @@
       SKILLSET.
     </h2>
     <p class="text-fog text-base md:text-lg max-w-2xl mx-auto mb-10">
-      Open any project. Run <code class="text-chalk">/skillforge setup</code>. Review the pre-checked list. Confirm.
+      Open any project. Run <code class="text-chalk">/yajinn:sf setup</code>. Review the pre-checked list. Confirm.
       That's the whole workflow.
     </p>
 
@@ -590,7 +590,7 @@
       <div class="brutal bg-slab p-0 overflow-hidden">
         <div class="flex items-center gap-3 p-5">
           <span class="text-run font-bold select-none">$</span>
-          <code class="flex-1 text-chalk text-base md:text-lg text-left break-all">/plugin marketplace add yajinn/skillforge</code>
+          <code class="flex-1 text-chalk text-base md:text-lg text-left break-all">/plugin marketplace add yajinn/SkillForge</code>
           <button onclick="copyInstall(this)"
                   class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0">
             COPY
@@ -656,7 +656,7 @@
 
 <script>
   function copyInstall(btn) {
-    const cmd = "/plugin marketplace add yajinn/skillforge";
+    const cmd = "/plugin marketplace add yajinn/SkillForge";
     navigator.clipboard.writeText(cmd).then(() => {
       const original = btn.textContent;
       btn.textContent = "\u2713 COPIED";

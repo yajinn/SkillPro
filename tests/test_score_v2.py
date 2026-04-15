@@ -1,5 +1,5 @@
 """Regression test: score.py must read the federated index and still produce
-the same shape of output that the /skillforge command expects."""
+the same shape of output that the /sf command expects."""
 import json
 import os
 import subprocess

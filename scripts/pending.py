@@ -3,14 +3,14 @@
 
 Motivation
 ----------
-The original `/skillforge add <id>` flow was opt-IN: every recommended
+The original `/sf add <id>` flow was opt-IN: every recommended
 skill required a separate command to install. With a federated index
 producing 20+ recommendations per project, that scales poorly.
 
-This module flips the model to opt-OUT. Run `/skillforge setup` once and
+This module flips the model to opt-OUT. Run `/sf setup` once and
 SkillForge writes a `pending.json` file at ``~/.claude/skillforge/pending.json``
 with every recommended skill pre-checked. The user reviews the list,
-unchecks anything they don't want, then runs `/skillforge confirm` to
+unchecks anything they don't want, then runs `/sf confirm` to
 batch-install everything still checked.
 
 Schema
@@ -146,7 +146,7 @@ def cmd_render() -> int:
     """Print a markdown checkbox list grouped by category."""
     doc = _load()
     if not doc:
-        print("no pending selections — run `/skillforge setup` to seed")
+        print("no pending selections — run `/sf setup` to seed")
         return 1
     items = doc["items"]
     if not items:
@@ -166,10 +166,10 @@ def cmd_render() -> int:
     print(f"_Project: `{doc['project_dir']}` · generated {doc['generated_at']}_")
     print()
     print("Edit selections:")
-    print("- `/skillforge skip <id>` to uncheck an item")
-    print("- `/skillforge check <id>` to re-check an item")
-    print("- `/skillforge confirm` to install everything still checked")
-    print("- `/skillforge clear` to cancel without installing")
+    print("- `/sf skip <id>` to uncheck an item")
+    print("- `/sf check <id>` to re-check an item")
+    print("- `/sf confirm` to install everything still checked")
+    print("- `/sf clear` to cancel without installing")
     print()
     for cat in cats:
         cat_items = by_cat[cat]
@@ -190,7 +190,7 @@ def cmd_render() -> int:
 def _set_checked(skill_id: str, value: bool) -> int:
     doc = _load()
     if not doc:
-        print("no pending selections — run `/skillforge setup` first")
+        print("no pending selections — run `/sf setup` first")
         return 1
     for it in doc["items"]:
         if it["id"] == skill_id:
