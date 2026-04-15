@@ -17,9 +17,18 @@
 
 set -uo pipefail
 
-PROJECT_DIR="${1:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
-PROFILE_DIR="$PROJECT_DIR/.claude"
+# Raw input dir (where the user ran the command) — stays constant for file
+# output paths so /skillforge finds .claude/project-profile.json from cwd.
+CWD_PROJECT_DIR="${1:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
+PROFILE_DIR="$CWD_PROJECT_DIR/.claude"
 PROFILE_FILE="$PROFILE_DIR/project-profile.json"
+
+# Effective project dir for detection — may be hoisted to a subdirectory
+# below for multi-project parents (e.g. `turna.react/Turna/…`). All existing
+# helpers (file_exists, pkg_has, pip_has, pub_has, …) read from PROJECT_DIR,
+# so the hoist logic only needs to reassign this one variable at the end of
+# the helper section.
+PROJECT_DIR="$CWD_PROJECT_DIR"
 
 # jq is required for JSON construction — fail fast with a readable error
 if ! command -v jq >/dev/null 2>&1; then
@@ -101,6 +110,130 @@ any_file_exists() {
   done
   return 1
 }
+
+# ---------------------------------------------------------------------------
+# 0.5 MONOREPO / MULTI-PROJECT PARENT RESOLUTION
+# ---------------------------------------------------------------------------
+# When the user opens a parent directory that contains a project in a
+# subdirectory (e.g. `turna.react/Turna/package.json`), detect.sh would
+# otherwise bail out with `language=unknown`. Here we probe the parent
+# for recognizable manifests; if there aren't any, we walk up to three
+# levels deep, score each candidate subdirectory, and hoist PROJECT_DIR
+# to the best match. The original cwd is preserved as CWD_PROJECT_DIR so
+# the profile JSON still lands where /skillforge reads it from.
+#
+# Scoring heuristic
+# -----------------
+# Each candidate directory gets one point per recognized manifest file
+# (package.json, pyproject.toml, composer.json, Gemfile, go.mod, etc.)
+# plus one point per common project marker (src/, ios/, android/, tests/,
+# lib/, app/, Makefile, README.md, .gitignore). Shallower directories
+# are preferred in ties — the final score is `score * 10 - depth` so a
+# depth-1 subdir with 4 markers beats a depth-3 subdir with 5 markers.
+# The best scorer wins; otherwise we fall back to the original cwd.
+# ---------------------------------------------------------------------------
+
+_has_root_manifest() {
+  local base="$1"
+  local marker
+  for marker in composer.json pyproject.toml requirements.txt setup.py \
+                Pipfile manage.py go.mod Cargo.toml pom.xml build.gradle \
+                build.gradle.kts settings.gradle Gemfile Rakefile config.ru \
+                global.json package.json pubspec.yaml; do
+    [ -f "$base/$marker" ] && return 0
+  done
+  # *.csproj / *.sln live at root but need a glob probe
+  find "$base" -maxdepth 1 \( -name "*.csproj" -o -name "*.sln" \) \
+    -print -quit 2>/dev/null | grep -q .
+}
+
+_score_candidate_dir() {
+  # Prints a numeric score for a candidate project directory. Higher is
+  # better. Callers use `score * 10 - depth` so shallower wins ties.
+  local dir="$1"
+  local score=0 m d
+  for m in package.json tsconfig.json composer.json pyproject.toml \
+           requirements.txt Pipfile go.mod Cargo.toml Gemfile pom.xml \
+           build.gradle build.gradle.kts pubspec.yaml Makefile README.md \
+           README.rst .gitignore; do
+    [ -f "$dir/$m" ] && score=$((score + 1))
+  done
+  for d in src lib app ios android tests test spec cmd internal pkg; do
+    [ -d "$dir/$d" ] && score=$((score + 1))
+  done
+  echo "$score"
+}
+
+find_project_root() {
+  local base="$1"
+
+  # Fast path: if the parent itself has a manifest, detection works
+  # correctly with PROJECT_DIR=base. Don't walk subdirs — that would
+  # let `docs/example/package.json` hijack a real python project at
+  # the root.
+  if _has_root_manifest "$base"; then
+    echo "$base"
+    return 0
+  fi
+
+  # Slow path: parent has no root manifest. Walk subdirs up to depth 3
+  # and collect every directory containing a recognized manifest.
+  local best="" best_score=-1
+  local manifest dir score depth adjusted
+
+  while IFS= read -r manifest; do
+    [ -z "$manifest" ] && continue
+    dir=$(dirname "$manifest")
+    score=$(_score_candidate_dir "$dir")
+    # depth relative to base (0 = base itself)
+    rel=${dir#"$base/"}
+    if [ "$rel" = "$dir" ]; then
+      depth=0
+    else
+      depth=$(awk -F'/' '{print NF}' <<< "$rel")
+    fi
+    adjusted=$((score * 10 - depth))
+    if [ "$adjusted" -gt "$best_score" ]; then
+      best_score=$adjusted
+      best="$dir"
+    fi
+  done < <(find "$base" -maxdepth 3 -type f \( \
+      -name "package.json" -o -name "composer.json" \
+      -o -name "pyproject.toml" -o -name "requirements.txt" \
+      -o -name "go.mod" -o -name "Cargo.toml" \
+      -o -name "Gemfile" -o -name "pom.xml" \
+      -o -name "build.gradle" -o -name "build.gradle.kts" \
+      -o -name "pubspec.yaml" \
+    \) \
+    -not -path "*/node_modules/*" \
+    -not -path "*/.git/*" \
+    -not -path "*/vendor/*" \
+    -not -path "*/.venv/*" \
+    -not -path "*/venv/*" \
+    -not -path "*/__pycache__/*" \
+    2>/dev/null)
+
+  if [ -n "$best" ]; then
+    echo "$best"
+    return 0
+  fi
+
+  # Nothing found — return base so detection proceeds with unknown.
+  echo "$base"
+  return 1
+}
+
+# Hoist PROJECT_DIR to the resolved subdirectory if necessary. The
+# profile file path stays anchored on CWD_PROJECT_DIR so /skillforge
+# can read it from the user's cwd without knowing about the hoist.
+MONOREPO_HOIST="false"
+DETECTION_DIR="$PROJECT_DIR"
+_resolved=$(find_project_root "$PROJECT_DIR")
+if [ "$_resolved" != "$PROJECT_DIR" ]; then
+  MONOREPO_HOIST="true"
+  PROJECT_DIR="$_resolved"
+  DETECTION_DIR="$_resolved"
+fi
 
 # ---------------------------------------------------------------------------
 # 1. LANGUAGE DETECTION
@@ -841,6 +974,9 @@ mkdir -p "$PROFILE_DIR"
 # --argjson injects pre-built JSON (our critical_files array).
 jq -n \
   --arg generated "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  --arg cwd_project_dir "$CWD_PROJECT_DIR" \
+  --arg detection_dir "$DETECTION_DIR" \
+  --argjson monorepo_hoist "$MONOREPO_HOIST" \
   --arg language "$LANGUAGE" \
   --arg language_version "$LANGUAGE_VERSION" \
   --argjson has_typescript "$HAS_TYPESCRIPT" \
@@ -882,6 +1018,9 @@ jq -n \
     version: 3,
     generated: $generated,
     detector: "skillforge-v3",
+    cwd_project_dir: $cwd_project_dir,
+    detection_dir: $detection_dir,
+    monorepo_hoist: $monorepo_hoist,
     language: $language,
     language_version: $language_version,
     has_typescript: $has_typescript,
