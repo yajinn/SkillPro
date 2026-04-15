@@ -1,5 +1,9 @@
 # SkillForge
 
+[![CI](https://github.com/yajinn/SkillForge/actions/workflows/test.yml/badge.svg)](https://github.com/yajinn/SkillForge/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![Stars](https://img.shields.io/github/stars/yajinn/SkillForge?style=social)](https://github.com/yajinn/SkillForge/stargazers)
+
 Zero-config federated skill discovery for AI coding agents. Detects your
 project's language, framework, and characteristics, then fetches a federated
 index of skills from external sources, scores it against the profile, passes
