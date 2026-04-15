@@ -1,156 +1,111 @@
 ---
-description: Detect the current project and manage SkillForge's federated skill index
+description: SkillForge — detect project, score federated skill index, install picks
 argument-hint: "[setup|refresh|sources|add <id>|remove <id>|skip <id>|check <id>|confirm|clear|export <cursor|codex>|audit|profile]"
 allowed-tools: Bash, Read, Write, Edit
 ---
 
 # /skillforge
 
-You are running the SkillForge command. SkillForge ships with no skills of
-its own — it fetches a federated index from external sources listed in
-`config/sources.json` (or `~/.claude/skillforge/sources.json`), scores the
-index against the detected project profile, and installs skills on demand.
+**Output style:** Be terse. No numbered "next steps" lists. No Insight blocks.
+No multi-paragraph preambles. Render the scan as a compact table and a single
+footer line. If the user wants detail, they'll ask.
 
-## Argument routing
+SkillForge ships with zero skills of its own. It fetches a federated index,
+scores it against the detected project, and installs only what the user picks.
 
-- (no argument) or `status` → show detected project + installed skills + recommendation summary
-- `setup` → refresh the index if TTL expired, **seed pending.json with all recommended skills pre-checked**, render the checkbox list
-- `refresh` → force-refresh the index, ignoring TTL
-- `sources` → print the active source list + last fetch status per source
-- `add <id>` → install a single skill by id (legacy opt-in path; kept for one-off installs outside the pending flow)
-- `remove <id>` → uninstall and drop from selections
-- **`skip <id>`** → uncheck an item in pending.json (won't be installed on confirm)
-- **`check <id>`** → re-check a previously skipped item
-- **`confirm`** → install every checked item from pending.json in one batch
-- **`clear`** → drop pending.json without installing anything
-- **`export cursor`** → convert every installed skill into `.cursor/rules/*.mdc` files under the current project
-- **`export codex`** → bundle every installed skill into a `AGENTS.md` managed section under the current project (preserves user content outside the markers)
-- `audit` → run the audit gate on every installed skill (Phase 7 stub, reports "unavailable")
-- `profile` → dump the full `.claude/project-profile.json`
-
-## Live state
-
-> **Plugin root resolution:** every bash block below resolves `$SF_ROOT`
-> via `${CLAUDE_PLUGIN_ROOT:-<cache-glob>}`. Claude Code doesn't always
-> export `CLAUDE_PLUGIN_ROOT` into slash-command bash subshells, so we
-> fall back to probing `~/.claude/plugins/cache/*/skillforge/*/` and
-> picking the newest install. This keeps every DCI block working even
-> when the env var is missing.
-
-Project profile (regenerated each invocation):
-!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; bash "$SF_ROOT/hooks/detect.sh" "$PWD" >/dev/null 2>&1 && cat .claude/project-profile.json 2>/dev/null || echo "{\"error\":\"detect.sh failed (SF_ROOT=$SF_ROOT)\"}"`
-
-Index freshness (stale-while-revalidate: this command both reports staleness and triggers a background refresh if needed):
-!`python3 -c "
-import json, os, sys
-from datetime import datetime, timezone
-p = os.path.expanduser('~/.claude/skillforge/index.json')
-if not os.path.exists(p):
-    print(json.dumps({'state': 'missing'}))
-    sys.exit(0)
-try:
-    with open(p) as f: idx = json.load(f)
-    t = datetime.strptime(idx['fetched_at'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-    age = (datetime.now(timezone.utc) - t).total_seconds()
-    ttl = idx.get('ttl_seconds', 604800)
-    print(json.dumps({'state': 'stale' if age > ttl else 'fresh', 'age_s': int(age), 'ttl_s': ttl, 'skills': len(idx.get('skills', [])), 'partial': idx.get('partial', False)}))
-except Exception as e:
-    print(json.dumps({'state': 'corrupt', 'error': str(e)}))
-"`
-
-Skill recommendations (blank if index is missing — tell the user to run /skillforge refresh):
-!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; python3 "$SF_ROOT/scripts/score.py" "$PWD" 2>/dev/null || echo '{}'`
-
-Selections (persistent across sessions):
-!`cat ~/.claude/skillforge/selections.json 2>/dev/null || echo '{}'`
-
-Pending checkbox state (staging area for `setup` → `confirm` flow):
-!`cat ~/.claude/skillforge/pending.json 2>/dev/null || echo '{}'`
-
-## Behavior
-
-**Before running any bash command** that invokes a script from this
-plugin, resolve the plugin root. Prefix every Bash tool call with:
+## Plugin root resolver (used by every bash block below)
 
 ```bash
 SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"
 ```
 
-Then call scripts as `python3 "$SF_ROOT/scripts/<name>.py" …` or
-`bash "$SF_ROOT/hooks/<name>.sh" …`. Never reference `${CLAUDE_PLUGIN_ROOT}`
-bare — Claude Code doesn't reliably export it into slash-command bash
-subshells, and the fallback `$PWD` points at the user's working project,
-not this plugin.
+Never reference `${CLAUDE_PLUGIN_ROOT}` bare — Claude Code doesn't always
+export it into slash-command subshells, and `$PWD` fallback would point
+at the user's project, not this plugin.
 
-1. **Parse the argument** from `$ARGUMENTS`.
+## Live state (3 injected blocks)
 
-2. **If the index is `missing`:**
-   - If argument is `refresh` or `setup`, run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --verbose` and wait for it to finish, then re-read state.
-   - For any other argument, tell the user the index is missing and suggest `/skillforge refresh`, then stop.
+Project profile:
+!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; bash "$SF_ROOT/hooks/detect.sh" "$PWD" >/dev/null 2>&1 && cat .claude/project-profile.json 2>/dev/null || echo "{\"error\":\"detect.sh failed (SF_ROOT=$SF_ROOT)\"}"`
 
-3. **If the index is `stale`:** silently run `python3 "$SF_ROOT/scripts/refresh_index.py" &` to kick off a background refresh. Serve the cached index in the meantime.
+Index freshness:
+!`python3 -c "
+import json, os, sys
+from datetime import datetime, timezone
+p = os.path.expanduser('~/.claude/skillforge/index.json')
+if not os.path.exists(p):
+    print(json.dumps({'state': 'missing'})); sys.exit(0)
+try:
+    with open(p) as f: idx = json.load(f)
+    t = datetime.strptime(idx['fetched_at'], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+    age = (datetime.now(timezone.utc) - t).total_seconds()
+    ttl = idx.get('ttl_seconds', 604800)
+    print(json.dumps({'state': 'stale' if age > ttl else 'fresh', 'age_s': int(age), 'skills': len(idx.get('skills', [])), 'partial': idx.get('partial', False)}))
+except Exception as e:
+    print(json.dumps({'state': 'corrupt', 'error': str(e)}))
+"`
 
-4. **Routing:**
-   - `profile` → dump the profile JSON verbatim as a fenced block. Stop.
-   - `sources` → list active sources, their types, their last fetch status. Stop.
-   - `refresh` → run `refresh_index.py --force --verbose`, report the outcome. Stop.
-   - `add <id>` → run `python3 "$SF_ROOT/scripts/install_skill.py" <id>`, report the outcome, then show the updated selections count. Stop.
-   - `remove <id>` → run `rm -rf ~/.claude/skills/<id>` and update `~/.claude/skillforge/selections.json` to drop the id. No confirmation prompt; this is explicit user intent. Stop.
-   - `setup` → run `python3 "$SF_ROOT/scripts/pending.py" seed "$PWD"` (writes pending.json with all recommended skills pre-checked), then run `python3 "$SF_ROOT/scripts/pending.py" render` and print its output. Append: "Review the checklist above. Run `/skillforge skip <id>` to uncheck unwanted skills, then `/skillforge confirm` to install everything still checked." Stop.
-   - `skip <id>` → run `python3 "$SF_ROOT/scripts/pending.py" skip <id>`, then `python3 "$SF_ROOT/scripts/pending.py" render` to show the updated checklist. Stop.
-   - `check <id>` → run `python3 "$SF_ROOT/scripts/pending.py" check <id>`, then `python3 "$SF_ROOT/scripts/pending.py" render`. Stop.
-   - `confirm` → run `python3 "$SF_ROOT/scripts/pending.py" confirm` and report the result. If any installs failed, the pending file is preserved so the user can `/skillforge confirm` again after resolving issues. Stop.
-   - `clear` → run `python3 "$SF_ROOT/scripts/pending.py" clear`. Stop.
-   - `export cursor` → run `python3 "$SF_ROOT/scripts/convert.py" --agent cursor --out "$PWD" --json`. Parse the JSON summary and report: number of `.mdc` files written, destination dir, any skipped skills with warnings. Stop.
-   - `export codex` → run `python3 "$SF_ROOT/scripts/convert.py" --agent codex --out "$PWD" --json`. Parse the JSON summary and report: `AGENTS.md` path, number of skills bundled, warnings about non-portable scripts/references. Remind the user that user-authored content outside the `<!-- skillforge:start -->` / `<!-- skillforge:end -->` markers is preserved. Stop.
-   - `audit` → for each installed skill, invoke `python3 "$SF_ROOT/scripts/audit_skill.py"`. Report a table. In this iteration every row reports `unavailable`.
-   - `status` / (empty) → proceed to step 5.
+Recommendations:
+!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; python3 "$SF_ROOT/scripts/score.py" "$PWD" 2>/dev/null || echo '{}'`
 
-5. **Render recommendations using the grouped structure.**
-   The scoring engine emits `grouped.recommended` and `grouped.optional`
-   with categories, clustered canonicals, and variant counts. Prefer
-   this structure over the flat `skills.recommended` list — it collapses
-   duplicates and groups by topic so the user isn't overwhelmed.
+Selections and pending state are read lazily inside `confirm`/`skip`/`check`
+routes — they're not needed for the status path.
 
-   Layout per category:
+## Routing
 
-   ```
-   ### ✅ Recommended ({total_shown} shown, {total_hidden} collapsed in {N} categories)
+Resolve `SF_ROOT` at the top of every Bash call using the line above. Then:
 
-   #### 🔧 language/python ({total_canonicals} skills, top 3)
-   | Skill | Score | Description |
-   |-------|-------|-------------|
-   | ✓ python-pro        | 100 | Advanced Python patterns |
-   | modern-python       | 95  | Python best practices |
-   | temporal-python-testing | 100 | Testing temporal apps |
-   _2 more in this category — use /skillforge show language/python_
+1. Parse `$ARGUMENTS`.
+2. If index is `missing`:
+   - `refresh` / `setup` → run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --verbose`, then re-read state.
+   - Anything else → tell the user "index missing, run `/skillforge refresh`". Stop.
+3. If index is `stale` → kick off `python3 "$SF_ROOT/scripts/refresh_index.py" &` in background, continue with cached index.
+4. Dispatch:
 
-   #### 🚀 framework/fastapi (3 skills, top 2)
-   | Skill | Score | Description |
-   | fastapi-expert       | 100 | +1 variant (fastapi-templates) |
-   ...
-   ```
+| Arg | Action |
+|-----|--------|
+| `profile` | Dump `.claude/project-profile.json` verbatim. Stop. |
+| `sources` | List sources from the index + their fetch status. Stop. |
+| `refresh` | `refresh_index.py --force --verbose`, report outcome. Stop. |
+| `add <id>` | `install_skill.py <id>`, report outcome. Stop. |
+| `remove <id>` | `rm -rf ~/.claude/skills/<id>` + drop from `selections.json`. Stop. |
+| `setup` | `pending.py seed "$PWD"` then `pending.py render`. One-line footer: "Review, then `/skillforge confirm`". Stop. |
+| `skip <id>` | `pending.py skip <id>` then `pending.py render`. Stop. |
+| `check <id>` | `pending.py check <id>` then `pending.py render`. Stop. |
+| `confirm` | `pending.py confirm`, report. Pending file preserved on failure. Stop. |
+| `clear` | `pending.py clear`. Stop. |
+| `export cursor` | `convert.py --agent cursor --out "$PWD" --json`. Report file count. Stop. |
+| `export codex` | `convert.py --agent codex --out "$PWD" --json`. Report path. Stop. |
+| `audit` | `audit_skill.py` on each installed skill. Compact table. Stop. |
+| `status` / empty | Continue to step 5. |
 
-   Rendering rules:
-   - Show **top 3 canonicals per category** (from `canonicals[]`).
-   - If a canonical has `variant_count > 0`, append `+N variant(s)` to
-     the description column and list the first 1-3 variant ids in a
-     footnote like `fastapi-templates, fastapi-best-practices`.
-   - Categories with `total_canonicals > shown count` get a
-     `_M more — /skillforge show <category>_` footer line.
-   - The `other` category (heuristic couldn't classify) is always last.
-   - Prefix installed skill ids with `✓` (check `selections.json`).
-   - If any skill has `audit.status == "failed"`, prefix it with `⚠️`.
+## Render template (status path only)
 
-   Fall back to the flat `skills.recommended` list only if `grouped`
-   is missing from the score output (shouldn't happen in current
-   version, but defensive).
+Output exactly this shape. No prose outside it:
 
-6. **Footer lines:**
-   - "Index: N skills from M sources, fetched <relative time> ago."
-   - "Detected libraries: `lib1, lib2, ...`" — pulled from `project-profile.json` `libraries` array. Skip the line entirely if empty. This is the user's confirmation that deep introspection ran.
-   - If `partial: true`: "⚠️ Partial index — some sources failed to fetch. Run `/skillforge sources` to see which."
-   - If pending.json exists with checked items: "📋 Pending: N skill(s) ready to install. Run `/skillforge confirm` to apply, `/skillforge clear` to discard."
-   - Otherwise: "Run `/skillforge setup` to seed a pre-checked install list, or `/skillforge add <id>` for one-off installs."
+```
+Project: <language> / <framework>  <N libs>
+Index:   <count> skills · <state> · fetched <age>
+<partial-warn if any>
 
-7. **Never install anything automatically.** Recommendations are suggestions, not actions. The `confirm` verb is the only path that actually installs; all other commands manipulate pending state.
+Recommended (<R>)        Optional (<O>)
+─────────────────────    ─────────────────
+<id>  (<score>)          <id>  (<score>)
+...                      ...
+
+Next: <one concrete action>
+```
+
+Rendering rules (minimal):
+- Max 5 rows per column. If more, append `+N more` on the last row.
+- Libraries list: truncate to 3 + `…` if longer.
+- `<partial-warn>` = `⚠ partial index` on its own line, only if `partial: true`.
+- `<one concrete action>` picks ONE of:
+  - `/skillforge setup` if pending.json missing or empty
+  - `/skillforge confirm` if pending.json has checked items
+  - `/skillforge refresh` if state is stale
+- Never auto-install. `confirm` is the only verb that touches `~/.claude/skills/`.
+
+If `grouped` is present in score output, use grouped IDs instead of flat
+`skills.recommended` — one category per row block, top 2 per category,
+collapse the rest silently. No category headers in terse mode.
