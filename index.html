@@ -184,7 +184,7 @@
     </p>
 
     <div class="mt-10 max-w-2xl">
-      <div class="text-xs text-fog mb-2 tracking-widest">&gt; INSTALL IN 10 SECONDS</div>
+      <div class="text-xs text-fog mb-2 tracking-widest">&gt; INSTALL IN 20 SECONDS</div>
       <div class="brutal bg-slab p-0 overflow-hidden">
         <div class="flex items-center border-b-[3px] border-chalk">
           <div class="flex gap-2 px-4 py-2">
@@ -194,14 +194,26 @@
           </div>
           <div class="flex-1 text-center text-xs text-fog">claude-code</div>
         </div>
-        <div class="flex items-center gap-3 p-5">
-          <span class="text-run font-bold select-none">$</span>
-          <code id="install-cmd" class="flex-1 text-chalk text-base md:text-lg break-all">/plugin marketplace add yajinn/SkillForge</code>
-          <button onclick="copyInstall(this)"
-                  class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0"
-                  aria-label="Copy install command">
-            COPY
-          </button>
+        <div class="px-5 py-4 space-y-3">
+          <div class="flex items-center gap-3">
+            <span class="text-fog text-xs select-none w-4 text-right">1</span>
+            <span class="text-run font-bold select-none">$</span>
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillForge</code>
+            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillForge')"
+                    class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0"
+                    aria-label="Copy marketplace add command">COPY</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-fog text-xs select-none w-4 text-right">2</span>
+            <span class="text-run font-bold select-none">$</span>
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillforge@yajinn</code>
+            <button onclick="copyLine(this, '/plugin install skillforge@yajinn')"
+                    class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0"
+                    aria-label="Copy install command">COPY</button>
+          </div>
+          <div class="text-xs text-fog pt-2 border-t-2 border-iron mt-2">
+            Then invoke as <code class="text-chalk">/skillforge:sf</code> in any project.
+          </div>
         </div>
       </div>
     </div>
@@ -582,19 +594,27 @@
       SKILLSET.
     </h2>
     <p class="text-fog text-base md:text-lg max-w-2xl mx-auto mb-10">
-      Open any project. Run <code class="text-chalk">/yajinn:sf setup</code>. Review the pre-checked list. Confirm.
+      Open any project. Run <code class="text-chalk">/skillforge:sf setup</code>. Review the pre-checked list. Confirm.
       That's the whole workflow.
     </p>
 
-    <div class="max-w-[616px] mx-auto mb-8">
+    <div class="max-w-[680px] mx-auto mb-8">
       <div class="brutal bg-slab p-0 overflow-hidden">
-        <div class="flex items-center gap-3 p-5">
-          <span class="text-run font-bold select-none">$</span>
-          <code class="flex-1 text-chalk text-base md:text-lg text-left break-all">/plugin marketplace add yajinn/SkillForge</code>
-          <button onclick="copyInstall(this)"
-                  class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0">
-            COPY
-          </button>
+        <div class="px-5 py-4 space-y-3 text-left">
+          <div class="flex items-center gap-3">
+            <span class="text-fog text-xs select-none w-4 text-right">1</span>
+            <span class="text-run font-bold select-none">$</span>
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillForge</code>
+            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillForge')"
+                    class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0">COPY</button>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-fog text-xs select-none w-4 text-right">2</span>
+            <span class="text-run font-bold select-none">$</span>
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillforge@yajinn</code>
+            <button onclick="copyLine(this, '/plugin install skillforge@yajinn')"
+                    class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0">COPY</button>
+          </div>
         </div>
       </div>
     </div>
@@ -655,11 +675,10 @@
 </footer>
 
 <script>
-  function copyInstall(btn) {
-    const cmd = "/plugin marketplace add yajinn/SkillForge";
-    navigator.clipboard.writeText(cmd).then(() => {
+  function copyLine(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
       const original = btn.textContent;
-      btn.textContent = "\u2713 COPIED";
+      btn.textContent = "\u2713";
       btn.classList.add("bg-run", "text-ink");
       btn.classList.remove("bg-ink", "text-chalk");
       setTimeout(() => {
@@ -668,7 +687,7 @@
         btn.classList.add("bg-ink", "text-chalk");
       }, 1600);
     }).catch(() => {
-      btn.textContent = "? MANUAL";
+      btn.textContent = "?";
     });
   }
 </script>
