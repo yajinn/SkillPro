@@ -57,8 +57,8 @@ jobs:
 
       - name: Verify required plugin files exist
         run: |
-          for f in .claude-plugin/plugin.json marketplace.json hooks/hooks.json \
-                   commands/skillforge.md config/sources.json \
+          for f in .claude-plugin/plugin.json .claude-plugin/marketplace.json \
+                   hooks/hooks.json commands/skillforge.md config/sources.json \
                    scripts/refresh_index.py scripts/score.py \
                    scripts/install_skill.py scripts/audit_skill.py \
                    SECURITY.md README.md CHANGELOG.md LICENSE CONTRIBUTING.md; do
@@ -66,11 +66,11 @@ jobs:
           done
           echo "all required files present"
 
-      - name: Validate manifest
+      - name: Validate plugin manifest
         run: jq -e '.name == "skillforge"' .claude-plugin/plugin.json
 
       - name: Validate marketplace.json
-        run: jq -e '.plugins | length > 0' marketplace.json
+        run: jq -e '.plugins | length > 0' .claude-plugin/marketplace.json
 
       - name: Validate hooks.json shape
         run: jq -e '.SessionStart and .PreToolUse and .PostToolUse' hooks/hooks.json
