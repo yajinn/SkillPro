@@ -16,3 +16,12 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+
+# Dev-only artifacts — kept in local working tree, not published to GitHub.
+# Internal planning docs, design specs, and legacy v1/v2 reference code
+# are useful during development but shouldn't appear in the public repo
+# file tree. Keeping them gitignored preserves the local working copy
+# while ensuring they stay out of commits, PRs, and GitHub Pages.
+PRD.md
+docs/superpowers/
+v1-reference/
