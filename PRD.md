@@ -629,12 +629,25 @@ Submit to:
 - Install/skip/manage actions
 
 **Acceptance criteria:**
-- [ ] First run shows setup wizard
-- [ ] User can toggle any skill on/off
-- [ ] "Skip for now" works (no skills installed, no re-prompt)
-- [ ] Subsequent sessions don't re-prompt
-- [ ] `/skillforge` reopens manager view with installed + available skills
-- [ ] `/skillforge add <name>` and `/skillforge remove <name>` work
+- [x] First run shows setup wizard — `/skillforge setup` seeds `pending.json`
+      with every recommended skill pre-checked and renders a markdown
+      checklist grouped by category
+- [x] User can toggle any skill on/off — `/skillforge skip <id>` and
+      `/skillforge check <id>` flip individual entries
+- [x] "Skip for now" works — `/skillforge clear` drops the pending file
+      without installing anything; subsequent `/skillforge` calls just
+      show status
+- [x] Subsequent sessions don't re-prompt — `selections.json` persists
+      installed skills across sessions; detect.sh's SessionStart hook only
+      prompts when selections.json is missing entirely
+- [x] `/skillforge` reopens manager view — the status verb (default) shows
+      detected project + installed skills + recommendation summary
+- [x] `/skillforge add <name>` and `/skillforge remove <name>` work — both
+      are explicit verbs in the command router
+- [ ] Browser-based HTML wizard — deferred indefinitely. The terminal-native
+      checkbox flow (pending.json + markdown render) turned out to be
+      sufficient for the interactive review use case and doesn't require
+      a separate HTTP server process.
 
 ### Phase 4: State persistence
 
@@ -715,13 +728,34 @@ Priority order:
 - GitHub Actions — PR validation, skill schema linting
 - `/plugin validate .` passes Anthropic validator
 
-### Phase 9: Multi-platform support
+### Phase 9: Multi-platform support ✅ PARTIAL
 
 **Deliverables:**
-- `scripts/convert.sh` — converts skills to Codex, Cursor, Gemini formats
-- `scripts/install.sh --agent <platform>` — per-platform installer
-- Platform-specific README sections
-- Testing on at least 3 platforms
+- ✅ `scripts/convert.py` + `scripts/converters/{cursor,codex}.py` — converts
+  installed skills to Cursor `.mdc` rules and Codex CLI `AGENTS.md` bundles.
+  Replaces the originally-planned `convert.sh` (Python gave cleaner per-platform
+  isolation) and also supersedes the separate `install.sh --agent <platform>`
+  deliverable — `convert.py` is itself the installer, writing directly to the
+  target project's expected directories.
+- ✅ Platform-specific README sections (§Multi-agent export).
+- ✅ Live end-to-end testing on Cursor + Codex CLI (author's own skill
+  library — 14 skills, 100% export success, managed-section round-trip
+  verified with zero marker drift).
+- 🚫 **Gemini CLI deferred.** Gemini's skill format isn't stable enough yet
+  to produce a reliable converter without significant reverse-engineering.
+  Tracked as future work.
+
+**Semantic split between targets:**
+- Cursor is **granular** — one `.mdc` file per skill under `.cursor/rules/`,
+  each with a description-triggered activation model.
+- Codex CLI is **monolithic** — a single `AGENTS.md` bundled into a managed
+  section bracketed by `<!-- skillforge:start -->` / `<!-- skillforge:end -->`
+  markers. User content outside the markers is preserved across re-runs.
+
+**Degrade strategy:**
+Skills with `scripts/` or `references/` directories can't travel to either
+target (both use flat markdown models). The converters emit a warning and
+transfer only the SKILL.md body.
 
 ### Phase 10: Launch + community
 

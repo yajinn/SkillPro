@@ -57,6 +57,7 @@ All eight PRD phases complete. See [CHANGELOG.md](./CHANGELOG.md) for the
 | 6 | Runtime hooks v2 (profile-driven guards + auto-format) | ✅ Complete |
 | 7 | Audit gate (heuristic scanner + optional external tools) | ✅ Complete |
 | 8 | Plugin manifest, marketplace.json, CI workflow | ✅ Complete |
+| 9 | Multi-agent export (Cursor + Codex CLI; Gemini deferred) | ✅ Partial |
 
 Post-1.0 refinements landed on top of the initial commit: detector
 Flutter/Dart gap fixes (`pub_has` helper + state-management sub-framework
@@ -115,11 +116,17 @@ external sources. Swap in your own source list by creating
 
 ```
 /skillforge              status: detected project, index summary, selections
-/skillforge setup        refresh if stale, then show interactive recommendations
+/skillforge setup        refresh, seed pending.json with recommended pre-checked
 /skillforge refresh      force-refresh the index (bypass TTL)
 /skillforge sources      list active sources and their last fetch status
-/skillforge add <id>     install a single skill
+/skillforge add <id>     install a single skill (one-off, bypasses pending)
+/skillforge skip <id>    uncheck a pending item before confirming
+/skillforge check <id>   re-check a previously skipped item
+/skillforge confirm      install every checked pending item in one batch
+/skillforge clear        drop pending.json without installing
 /skillforge remove <id>  uninstall and drop from selections
+/skillforge export cursor  convert installed skills to .cursor/rules/*.mdc
+/skillforge export codex   bundle installed skills into AGENTS.md (managed block)
 /skillforge audit        run the audit gate on every installed skill
 /skillforge profile      dump the full .claude/project-profile.json
 ```
@@ -134,6 +141,75 @@ strict-mode configuration.
 
 Optional Tier 2 adapters wrap `snyk-agent-scan` and `skill-scanner` if they
 are on your PATH — no configuration required.
+
+## Multi-agent export
+
+Once you've curated a set of skills with `/skillforge confirm`, you can
+re-use them in other AI coding tools without re-picking. SkillForge reads
+from a single source of truth (`~/.claude/skills/`) and emits each target
+platform's native format.
+
+### Cursor
+
+```bash
+cd ~/code/my-project
+/skillforge export cursor
+```
+
+Writes one `.mdc` file per skill under `<project>/.cursor/rules/`:
+
+```
+.cursor/rules/
+├── brainstorming.mdc
+├── python-pro.mdc
+└── writing-plans.mdc
+```
+
+Each rule carries a `description:` field from the skill's YAML
+frontmatter and `alwaysApply: false` — Cursor activates the rule when
+the description matches your request, not on every turn. Re-run the
+command after `/skillforge confirm` to refresh the rule set.
+
+### Codex CLI
+
+```bash
+cd ~/code/my-project
+/skillforge export codex
+```
+
+Bundles every installed skill into a single `<project>/AGENTS.md`
+inside a managed section bracketed by HTML-comment markers:
+
+```markdown
+# My project notes      ← your content
+Use 2-space indent.
+
+<!-- skillforge:start -->
+# SkillForge skills
+
+## python-pro
+_Activate when: Advanced Python patterns for production codebases_
+...
+<!-- skillforge:end -->
+
+More of your content below the markers is also preserved.
+```
+
+Any content you write **outside** the markers survives across
+re-exports. Running `export codex` a second time replaces the managed
+block in place — no duplication, no marker drift.
+
+### Degrade behavior
+
+Skills with `scripts/` or `references/` subdirectories can't travel to
+either target (both platforms use a flat markdown model). SkillForge
+emits a warning and transfers only the `SKILL.md` body. The source
+stays in `~/.claude/skills/` where it works normally inside Claude Code.
+
+### Why not Gemini?
+
+Gemini CLI's skill format isn't stable enough yet to produce a reliable
+converter. Adding Gemini support is tracked as future work.
 
 ## Try it without installing
 
@@ -221,7 +297,7 @@ skillforge/
 python3 -m unittest discover tests
 ```
 
-105 tests, stdlib-only. The end-to-end test spins up a local `http.server`
+248 tests, stdlib-only. The end-to-end test spins up a local `http.server`
 serving a fake marketplace and runs the full detect → refresh → score →
 install pipeline without touching the network. Separate suites cover
 audit rules (27), enrichment merge semantics (7), and the GitHub Trees
