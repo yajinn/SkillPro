@@ -409,6 +409,8 @@ def apply_enrichment(entry: SkillEntry) -> SkillEntry:
         commit_sha=entry.commit_sha,
         category=overlay["category"] if "category" in overlay and overlay["category"] is not None else entry.category,
         popularity=entry.popularity,
+        match_libraries=list(overlay["match_libraries"]) if "match_libraries" in overlay and overlay["match_libraries"] is not None else list(entry.match_libraries),
+        boost_libraries=list(overlay["boost_libraries"]) if "boost_libraries" in overlay and overlay["boost_libraries"] is not None else list(entry.boost_libraries),
     )
 
 

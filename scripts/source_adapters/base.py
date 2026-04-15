@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from typing import Callable, List, Optional, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -33,6 +33,16 @@ class SkillEntry:
     #     Other sources default to 0.
     category: Optional[str] = None
     popularity: int = 0
+    # Library anchoring — the skill is tied to specific libraries (detected
+    # by detect.sh's deep library introspection). Semantics in score.py:
+    #   match_libraries: hard anchor. Skill hidden unless the project uses
+    #     at least one of these libraries.
+    #   boost_libraries: soft nudge. Additive +5 if any overlap, otherwise
+    #     the skill is scored on its normal tag/framework signals.
+    # Both default to empty list for backward compatibility with existing
+    # sources and enrichment entries.
+    match_libraries: List[str] = field(default_factory=list)
+    boost_libraries: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)

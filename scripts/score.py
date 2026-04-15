@@ -34,8 +34,21 @@ def score_skill(skill, profile):
     language = profile.get("language") or "unknown"
     framework = profile.get("framework") or ""
     sub_framework = profile.get("sub_framework") or ""
+    libraries = set(profile.get("libraries") or [])
 
     score = 0
+
+    # --- Library match (auto-recommend skills tied to a specific library) ---
+    # A skill with `match_libraries` is "library-anchored" — we only show it
+    # when at least one of its libraries is actually present in the project.
+    # This keeps the "X libraries detected → skill for X surfaced" promise.
+    match_libs = skill.get("match_libraries", [])
+    if match_libs:
+        overlap = libraries.intersection(match_libs)
+        if overlap:
+            return 100
+        else:
+            return -100
 
     # --- Language match (auto-recommend language skills) ---
     match_lang = skill.get("match_language", "")
@@ -61,6 +74,13 @@ def score_skill(skill, profile):
             return 100
         else:
             return -100
+
+    # --- Soft library boost: non-anchored skills that list libraries they
+    # "like" get a nudge when the project actually uses them. Additive, not
+    # decisive — combines with tag/boost matches below.
+    boost_libs = skill.get("boost_libraries", [])
+    if boost_libs and libraries.intersection(boost_libs):
+        score += 5
 
     # --- Tag matching ---
     tags = skill.get("tags", [])

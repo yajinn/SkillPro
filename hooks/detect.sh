@@ -54,6 +54,39 @@ pub_has() {
   [ -f "$PROJECT_DIR/pubspec.yaml" ] && grep -qi "^\s*$1:" "$PROJECT_DIR/pubspec.yaml" 2>/dev/null
 }
 
+gem_has() {
+  [ -f "$PROJECT_DIR/Gemfile" ] && grep -qi "^\s*gem\s*['\"]$1['\"]" "$PROJECT_DIR/Gemfile" 2>/dev/null
+}
+
+go_mod_has() {
+  [ -f "$PROJECT_DIR/go.mod" ] && grep -q "$1" "$PROJECT_DIR/go.mod" 2>/dev/null
+}
+
+cargo_has() {
+  [ -f "$PROJECT_DIR/Cargo.toml" ] && grep -q "^\s*$1\s*=" "$PROJECT_DIR/Cargo.toml" 2>/dev/null
+}
+
+gradle_has() {
+  # Searches pom.xml AND build.gradle(.kts) for a dependency pattern.
+  # Java/Kotlin projects may use either, or both in multi-module setups.
+  {
+    [ -f "$PROJECT_DIR/pom.xml" ] && grep -q "$1" "$PROJECT_DIR/pom.xml" 2>/dev/null
+  } || {
+    [ -f "$PROJECT_DIR/build.gradle" ] && grep -q "$1" "$PROJECT_DIR/build.gradle" 2>/dev/null
+  } || {
+    [ -f "$PROJECT_DIR/build.gradle.kts" ] && grep -q "$1" "$PROJECT_DIR/build.gradle.kts" 2>/dev/null
+  } || {
+    [ -f "$PROJECT_DIR/app/build.gradle" ] && grep -q "$1" "$PROJECT_DIR/app/build.gradle" 2>/dev/null
+  } || {
+    [ -f "$PROJECT_DIR/app/build.gradle.kts" ] && grep -q "$1" "$PROJECT_DIR/app/build.gradle.kts" 2>/dev/null
+  }
+}
+
+nuget_has() {
+  # Search any .csproj file (up to depth 2) for a PackageReference include
+  find "$PROJECT_DIR" -maxdepth 2 -name "*.csproj" -exec grep -l "$1" {} \; 2>/dev/null | head -1 | grep -q .
+}
+
 dir_exists() {
   [ -d "$PROJECT_DIR/$1" ]
 }
@@ -553,6 +586,199 @@ esac
 CRITICAL_FILES=$(echo "$CRITICAL_FILES" | jq 'unique')
 
 # ---------------------------------------------------------------------------
+# 8.5 DEEP LIBRARY INTROSPECTION
+# ---------------------------------------------------------------------------
+# Purpose: beyond coarse (language, framework) signals, detect which specific
+# libraries the project uses — TanStack Query, Zustand, FastAPI, Drizzle, etc.
+# Emitted as a flat array of canonical IDs under `libraries` so scoring can
+# target them via `match_libraries: ["tanstack-query"]`.
+#
+# Design notes:
+#   - Canonical IDs are lowercase kebab-case and stable across versions
+#   - Multiple packages can map to the same canonical (e.g. @tanstack/query-core
+#     and @tanstack/react-query both → tanstack-query)
+#   - Detection is substring-based on manifest files — fast, no tool deps
+#   - Order within each language branch is alphabetical by canonical ID
+# ---------------------------------------------------------------------------
+LIBS=()
+add_lib() { LIBS+=("$1"); }
+
+case "$LANGUAGE" in
+  javascript|typescript)
+    pkg_has '"@anthropic-ai/sdk"' && add_lib "anthropic-sdk"
+    pkg_has '"@clerk/' && add_lib "clerk"
+    pkg_has '"cypress"' && add_lib "cypress"
+    pkg_has '"drizzle-orm"' && add_lib "drizzle"
+    pkg_has '"framer-motion"' && add_lib "framer-motion"
+    pkg_has '"jest"' && add_lib "jest"
+    pkg_has '"jotai"' && add_lib "jotai"
+    pkg_has '"kysely"' && add_lib "kysely"
+    pkg_has '"langchain"' && add_lib "langchain"
+    pkg_has '"mongoose"' && add_lib "mongoose"
+    pkg_has '"next-auth"' && add_lib "next-auth"
+    pkg_has '"openai"' && add_lib "openai-sdk"
+    (pkg_has '"playwright"' || pkg_has '"@playwright/test"') && add_lib "playwright"
+    pkg_has '"@prisma/client"' && add_lib "prisma"
+    pkg_has '"react-hook-form"' && add_lib "react-hook-form"
+    pkg_has '"recoil"' && add_lib "recoil"
+    pkg_has '"@reduxjs/toolkit"' && add_lib "redux-toolkit"
+    pkg_has '"socket.io"' && add_lib "socketio"
+    (pkg_has '"stripe"' || pkg_has '"@stripe/stripe-js"') && add_lib "stripe"
+    pkg_has '"@supabase/supabase-js"' && add_lib "supabase"
+    pkg_has '"swr"' && add_lib "swr"
+    pkg_has '"tailwindcss"' && add_lib "tailwindcss"
+    (pkg_has '"@tanstack/react-query"' || pkg_has '"@tanstack/query-core"') && add_lib "tanstack-query"
+    pkg_has '"@trpc/' && add_lib "trpc"
+    pkg_has '"typeorm"' && add_lib "typeorm"
+    pkg_has '"vitest"' && add_lib "vitest"
+    pkg_has '"yup"' && add_lib "yup"
+    pkg_has '"zod"' && add_lib "zod"
+    pkg_has '"zustand"' && add_lib "zustand"
+    ;;
+
+  python)
+    pip_has "alembic" && add_lib "alembic"
+    pip_has "anthropic" && add_lib "anthropic-sdk"
+    pip_has "boto3" && add_lib "boto3"
+    pip_has "celery" && add_lib "celery"
+    pip_has "fastapi" && add_lib "fastapi"
+    pip_has "gunicorn" && add_lib "gunicorn"
+    pip_has "httpx" && add_lib "httpx"
+    pip_has "langchain" && add_lib "langchain"
+    pip_has "mypy" && add_lib "mypy"
+    pip_has "numpy" && add_lib "numpy"
+    pip_has "openai" && add_lib "openai-sdk"
+    pip_has "pandas" && add_lib "pandas"
+    pip_has "polars" && add_lib "polars"
+    pip_has "pydantic" && add_lib "pydantic"
+    pip_has "pytest" && add_lib "pytest"
+    pip_has "redis" && add_lib "redis-py"
+    pip_has "ruff" && add_lib "ruff"
+    pip_has "scikit-learn" && add_lib "scikit-learn"
+    pip_has "sqlalchemy" && add_lib "sqlalchemy"
+    pip_has "stripe" && add_lib "stripe"
+    pip_has "tensorflow" && add_lib "tensorflow"
+    pip_has "torch" && add_lib "pytorch"
+    pip_has "transformers" && add_lib "transformers"
+    pip_has "uvicorn" && add_lib "uvicorn"
+    ;;
+
+  php)
+    composer_has "doctrine/orm" && add_lib "doctrine-orm"
+    composer_has "filament/filament" && add_lib "filament"
+    composer_has "inertiajs/inertia-laravel" && add_lib "inertia"
+    composer_has "laravel/passport" && add_lib "laravel-passport"
+    composer_has "laravel/sanctum" && add_lib "laravel-sanctum"
+    composer_has "livewire/livewire" && add_lib "livewire"
+    composer_has "nesbot/carbon" && add_lib "carbon"
+    composer_has "pestphp/pest" && add_lib "pest"
+    composer_has "phpunit/phpunit" && add_lib "phpunit"
+    composer_has "spatie/laravel-permission" && add_lib "spatie-permission"
+    composer_has "stripe/stripe-php" && add_lib "stripe"
+    composer_has "symfony/messenger" && add_lib "symfony-messenger"
+    ;;
+
+  ruby)
+    gem_has "cancancan" && add_lib "cancancan"
+    gem_has "capybara" && add_lib "capybara"
+    gem_has "devise" && add_lib "devise"
+    gem_has "factory_bot" && add_lib "factory-bot"
+    gem_has "hotwire-rails" && add_lib "hotwire"
+    gem_has "pundit" && add_lib "pundit"
+    gem_has "rspec" && add_lib "rspec"
+    gem_has "rspec-rails" && add_lib "rspec"
+    gem_has "rubocop" && add_lib "rubocop"
+    gem_has "sidekiq" && add_lib "sidekiq"
+    gem_has "stimulus-rails" && add_lib "stimulus"
+    gem_has "stripe" && add_lib "stripe"
+    gem_has "turbo-rails" && add_lib "turbo"
+    ;;
+
+  go)
+    go_mod_has "github.com/gin-gonic/gin" && add_lib "gin"
+    go_mod_has "github.com/gofiber/fiber" && add_lib "fiber"
+    go_mod_has "github.com/jackc/pgx" && add_lib "pgx"
+    go_mod_has "github.com/jmoiron/sqlx" && add_lib "sqlx"
+    go_mod_has "github.com/labstack/echo" && add_lib "echo"
+    go_mod_has "github.com/spf13/cobra" && add_lib "cobra"
+    go_mod_has "github.com/spf13/viper" && add_lib "viper"
+    go_mod_has "github.com/stretchr/testify" && add_lib "testify"
+    go_mod_has "go.uber.org/zap" && add_lib "zap"
+    go_mod_has "google.golang.org/grpc" && add_lib "grpc-go"
+    go_mod_has "gorm.io/gorm" && add_lib "gorm"
+    ;;
+
+  rust)
+    cargo_has "actix-web" && add_lib "actix-web"
+    cargo_has "anyhow" && add_lib "anyhow"
+    cargo_has "axum" && add_lib "axum"
+    cargo_has "clap" && add_lib "clap"
+    cargo_has "diesel" && add_lib "diesel"
+    cargo_has "reqwest" && add_lib "reqwest"
+    cargo_has "rocket" && add_lib "rocket"
+    cargo_has "sea-orm" && add_lib "sea-orm"
+    cargo_has "serde" && add_lib "serde"
+    cargo_has "sqlx" && add_lib "sqlx"
+    cargo_has "thiserror" && add_lib "thiserror"
+    cargo_has "tokio" && add_lib "tokio"
+    cargo_has "tracing" && add_lib "tracing"
+    ;;
+
+  dart)
+    pub_has "bloc" && add_lib "bloc"
+    pub_has "cloud_firestore" && add_lib "firestore"
+    pub_has "dio" && add_lib "dio"
+    pub_has "drift" && add_lib "drift"
+    pub_has "firebase_auth" && add_lib "firebase-auth"
+    pub_has "flutter_bloc" && add_lib "flutter-bloc"
+    pub_has "flutter_riverpod" && add_lib "riverpod"
+    pub_has "freezed" && add_lib "freezed"
+    pub_has "get_it" && add_lib "get-it"
+    pub_has "go_router" && add_lib "go-router"
+    pub_has "hive" && add_lib "hive"
+    pub_has "json_serializable" && add_lib "json-serializable"
+    pub_has "provider" && add_lib "provider"
+    pub_has "retrofit" && add_lib "retrofit"
+    pub_has "riverpod" && add_lib "riverpod"
+    pub_has "sqflite" && add_lib "sqflite"
+    ;;
+
+  java|kotlin)
+    gradle_has "androidx.room" && add_lib "room"
+    gradle_has "com.fasterxml.jackson" && add_lib "jackson"
+    gradle_has "com.squareup.okhttp3" && add_lib "okhttp"
+    gradle_has "com.squareup.retrofit2" && add_lib "retrofit"
+    gradle_has "dagger.hilt" && add_lib "hilt"
+    gradle_has "hibernate-core" && add_lib "hibernate"
+    gradle_has "kotlinx-coroutines" && add_lib "coroutines"
+    gradle_has "lombok" && add_lib "lombok"
+    gradle_has "mockito" && add_lib "mockito"
+    gradle_has "org.junit.jupiter" && add_lib "junit5"
+    gradle_has "spring-boot-starter-data-jpa" && add_lib "spring-data-jpa"
+    gradle_has "spring-boot-starter" && add_lib "spring-boot"
+    ;;
+
+  csharp)
+    nuget_has "AutoMapper" && add_lib "automapper"
+    nuget_has "FluentValidation" && add_lib "fluent-validation"
+    nuget_has "IdentityServer" && add_lib "identity-server"
+    nuget_has "MediatR" && add_lib "mediatr"
+    nuget_has "Microsoft.AspNetCore.SignalR" && add_lib "signalr"
+    nuget_has "Microsoft.EntityFrameworkCore" && add_lib "entity-framework"
+    nuget_has "Serilog" && add_lib "serilog"
+    nuget_has "xunit" && add_lib "xunit"
+    ;;
+esac
+
+# Build JSON array from LIBS (deduped, sorted). jq -R reads each line as a
+# string, -s aggregates into a list, unique sorts and dedupes.
+if [ ${#LIBS[@]} -eq 0 ]; then
+  LIBRARIES_JSON='[]'
+else
+  LIBRARIES_JSON=$(printf '%s\n' "${LIBS[@]}" | jq -R . | jq -s 'unique')
+fi
+
+# ---------------------------------------------------------------------------
 # 9. AUDIT COMMANDS
 # ---------------------------------------------------------------------------
 AUDIT_DEPS=""
@@ -647,6 +873,7 @@ jq -n \
   --argjson git_uncommitted "${GIT_UNCOMMITTED:-0}" \
   --arg git_last_commit "$GIT_LAST_COMMIT" \
   --argjson critical_files "$CRITICAL_FILES" \
+  --argjson libraries "$LIBRARIES_JSON" \
   --arg audit_deps "$AUDIT_DEPS" \
   --arg audit_lint "$AUDIT_LINT" \
   --arg audit_test "$AUDIT_TEST" \
@@ -694,6 +921,7 @@ jq -n \
       last_commit: (if $git_last_commit == "" then null else $git_last_commit end)
     },
     critical_files: $critical_files,
+    libraries: $libraries,
     audit_commands: {
       deps: (if $audit_deps == "" then null else $audit_deps end),
       lint: (if $audit_lint == "" then null else $audit_lint end),

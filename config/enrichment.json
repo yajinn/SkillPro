@@ -194,6 +194,21 @@
       "tags": [],
       "default_for": ["library"],
       "notes": "Structural editor for reorganization and cuts. Same prose rationale."
+    },
+    "tanstack-query-patterns": {
+      "category": "framework/react",
+      "match_libraries": ["tanstack-query"],
+      "notes": "Example library-anchored skill. Only surfaces when @tanstack/react-query is actually in package.json. Remove this placeholder once the real source skill lands in the federated index."
+    },
+    "fastapi-patterns": {
+      "category": "framework/fastapi",
+      "match_libraries": ["fastapi"],
+      "notes": "Example library-anchored skill. Paired with the fastapi detection in detect.sh."
+    },
+    "flutter-bloc-patterns": {
+      "category": "framework/flutter",
+      "match_libraries": ["flutter-bloc", "bloc"],
+      "notes": "Example library-anchored skill. Fires when either the flutter_bloc or plain bloc package is detected in pubspec.yaml."
     }
   }
 }
