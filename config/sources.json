@@ -18,6 +18,13 @@
       "name": "awesome-claude-plugins",
       "url": "https://raw.githubusercontent.com/quemsah/awesome-claude-plugins/main/README.md",
       "require_audit": false
+    },
+    {
+      "type": "sitemap-aggregator",
+      "name": "skills.sh",
+      "url": "https://skills.sh/sitemap.xml",
+      "require_audit": false,
+      "max_repos": 15
     }
   ]
 }

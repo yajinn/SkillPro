@@ -169,6 +169,18 @@ def infer_tags(description: str, name: str = "") -> dict:
 
 _ENRICHMENT_CACHE: Optional[Dict[str, Any]] = None
 
+# Process-wide circuit breaker for GitHub Trees API rate limiting.
+# Once we see a 403/429 from the API, subsequent tree calls in the same
+# refresh short-circuit to empty, avoiding the "rapid-fire 60 failed
+# requests" pattern that was filling stderr with noise. Reset between
+# runs (module unload / fresh process).
+_TREE_API_RATE_LIMITED = False
+
+
+def _reset_tree_api_rate_limit() -> None:
+    global _TREE_API_RATE_LIMITED
+    _TREE_API_RATE_LIMITED = False
+
 
 def _load_enrichment() -> Dict[str, Any]:
     global _ENRICHMENT_CACHE
@@ -268,7 +280,34 @@ def parse_skill_frontmatter(body: bytes) -> Optional[dict]:
 class MarketplaceAdapter:
     type = "marketplace"
 
-    def fetch(self, url: str, http_get: HttpGet) -> List[SkillEntry]:
+    def fetch_repo_via_tree_api(
+        self,
+        owner: str,
+        repo: str,
+        ref: str,
+        http_get: HttpGet,
+    ) -> List[SkillEntry]:
+        """Walk a repo's skill/ tree directly, without requiring marketplace.json.
+
+        Useful for callers (e.g. sitemap-aggregator) that know a repo
+        hosts SKILL.md files but don't know (or care) whether it ships a
+        marketplace.json manifest. Internally reuses the same Shape C
+        path used when a marketplace.json has an empty skills list:
+        discover skill dirs via Trees API, fetch each SKILL.md, parse
+        frontmatter, apply heuristic inference + enrichment.
+        """
+        synthetic_plugin = {"name": repo, "source": "./"}
+        synthetic_marketplace_url = (
+            f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/.claude-plugin/marketplace.json"
+        )
+        # _skills_from_plugin's Shape C branch does exactly what we need:
+        # detect empty skills → parse the marketplace URL → Trees API →
+        # per-skill SKILL.md fetch. No code duplication.
+        return self._skills_from_plugin(
+            synthetic_plugin, synthetic_marketplace_url, http_get
+        )
+
+    def fetch(self, url: str, http_get: HttpGet, source: Optional[dict] = None) -> List[SkillEntry]:
         try:
             body = http_get(url)
             doc = parse_json_bytes(body)
@@ -360,18 +399,33 @@ class MarketplaceAdapter:
 
         One HTTP request per repo; returns relative paths like
         `skills/brainstorming`. Returns [] on any failure (rate-limit,
-        404, parse error).
+        404, parse error). Once a rate-limit error is observed, the
+        process-wide circuit breaker short-circuits all subsequent
+        calls to return [] immediately — suppresses noise and speeds
+        up the rest of the refresh.
         """
+        global _TREE_API_RATE_LIMITED
+        if _TREE_API_RATE_LIMITED:
+            return []
         api_url = (
             f"https://api.github.com/repos/{owner}/{repo}/git/trees/{ref}?recursive=1"
         )
         try:
             body = http_get(api_url)
         except IOError as exc:
-            print(
-                f"[marketplace] tree API failed for {owner}/{repo}: {exc}",
-                file=sys.stderr,
-            )
+            msg = str(exc)
+            if "403" in msg or "429" in msg or "rate limit" in msg.lower():
+                _TREE_API_RATE_LIMITED = True
+                print(
+                    "[marketplace] tree API rate limited — suppressing further "
+                    "calls (set GITHUB_TOKEN to raise limit from 60/hr to 5000/hr)",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"[marketplace] tree API failed for {owner}/{repo}: {exc}",
+                    file=sys.stderr,
+                )
             return []
         try:
             doc = json.loads(body)

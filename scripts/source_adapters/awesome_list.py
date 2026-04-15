@@ -52,7 +52,7 @@ class AwesomeListAdapter:
     def __init__(self) -> None:
         self._marketplace = MarketplaceAdapter()
 
-    def fetch(self, url: str, http_get: HttpGet) -> List[SkillEntry]:
+    def fetch(self, url: str, http_get: HttpGet, source=None) -> List[SkillEntry]:
         try:
             body = http_get(url)
         except IOError as exc:

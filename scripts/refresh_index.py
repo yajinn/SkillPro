@@ -32,6 +32,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 from source_adapters.base import http_get_default  # noqa: E402
 from source_adapters.marketplace import MarketplaceAdapter  # noqa: E402
 from source_adapters.awesome_list import AwesomeListAdapter  # noqa: E402
+from source_adapters.sitemap_aggregator import SitemapAggregatorAdapter  # noqa: E402
 
 
 DEFAULT_TTL_SECONDS = 7 * 24 * 3600  # 7 days
@@ -45,6 +46,7 @@ MAX_WORKERS = 4
 ADAPTERS = {
     "marketplace": MarketplaceAdapter(),
     "awesome-list": AwesomeListAdapter(),
+    "sitemap-aggregator": SitemapAggregatorAdapter(),
 }
 
 
@@ -81,7 +83,13 @@ def _fetch_one(source: dict, adapter, http_get) -> tuple:
     """Run one adapter with a timeout. Returns (source_meta, entries_or_None)."""
     t0 = time.monotonic()
     try:
-        entries = adapter.fetch(source["url"], http_get)
+        # Adapters accept an optional `source` dict so they can read
+        # per-source config (e.g. max_repos for sitemap-aggregator).
+        # Older adapters ignore the parameter — backward compatible.
+        try:
+            entries = adapter.fetch(source["url"], http_get, source)
+        except TypeError:
+            entries = adapter.fetch(source["url"], http_get)
         meta = {
             "name": source["name"],
             "type": source["type"],

@@ -25,6 +25,7 @@ from source_adapters.marketplace import (  # noqa: E402
     MarketplaceAdapter,
     _parse_github_raw_url,
     _reset_enrichment_cache,
+    _reset_tree_api_rate_limit,
 )
 
 
@@ -77,6 +78,9 @@ class TestParseGithubRawUrl(unittest.TestCase):
 
 
 class TestDiscoverSkillsViaTreeApi(unittest.TestCase):
+    def setUp(self):
+        _reset_tree_api_rate_limit()
+
     def test_extracts_skill_dirs_from_tree_response(self):
         tree_doc = {
             "tree": [
@@ -203,6 +207,7 @@ description: Use when you have a spec for a multi-step task, before touching cod
 class TestShapeCIntegration(unittest.TestCase):
     def setUp(self):
         _reset_enrichment_cache()
+        _reset_tree_api_rate_limit()
         self.adapter = MarketplaceAdapter()
 
     def tearDown(self):
