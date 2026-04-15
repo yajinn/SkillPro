@@ -69,7 +69,7 @@ Resolve `SF_ROOT` at the top of every Bash call using the line above. Then:
 | `refresh` | `refresh_index.py --force --verbose`, report outcome. Stop. |
 | `add <id>` | `install_skill.py <id>`, report outcome. Stop. |
 | `remove <id>` | `rm -rf ~/.claude/skills/<id>` + drop from `selections.json`. Stop. |
-| `setup` | `pending.py seed "$PWD"` then `pending.py render`. One-line footer: "Review, then `/sf confirm`". Stop. |
+| `setup` | `scan.py "$PWD"` — runs the narrated pipeline (detect → index → score → seed) and streams status lines. THEN run `pending.py render` and print its full output as a second block so the user sees the checkbox list. Do NOT reformat scan.py output — it's already user-facing. Stop. |
 | `skip <id>` | `pending.py skip <id>` then `pending.py render`. Stop. |
 | `check <id>` | `pending.py check <id>` then `pending.py render`. Stop. |
 | `confirm` | `pending.py confirm`, report. Pending file preserved on failure. Stop. |
