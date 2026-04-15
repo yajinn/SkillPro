@@ -30,8 +30,15 @@ index against the detected project profile, and installs skills on demand.
 
 ## Live state
 
+> **Plugin root resolution:** every bash block below resolves `$SF_ROOT`
+> via `${CLAUDE_PLUGIN_ROOT:-<cache-glob>}`. Claude Code doesn't always
+> export `CLAUDE_PLUGIN_ROOT` into slash-command bash subshells, so we
+> fall back to probing `~/.claude/plugins/cache/*/skillforge/*/` and
+> picking the newest install. This keeps every DCI block working even
+> when the env var is missing.
+
 Project profile (regenerated each invocation):
-!`bash "${CLAUDE_PLUGIN_ROOT:-$PWD}/hooks/detect.sh" "$PWD" >/dev/null 2>&1 && cat .claude/project-profile.json 2>/dev/null || echo '{"error":"detect.sh failed"}'`
+!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; bash "$SF_ROOT/hooks/detect.sh" "$PWD" >/dev/null 2>&1 && cat .claude/project-profile.json 2>/dev/null || echo "{\"error\":\"detect.sh failed (SF_ROOT=$SF_ROOT)\"}"`
 
 Index freshness (stale-while-revalidate: this command both reports staleness and triggers a background refresh if needed):
 !`python3 -c "
@@ -52,7 +59,7 @@ except Exception as e:
 "`
 
 Skill recommendations (blank if index is missing — tell the user to run /skillforge refresh):
-!`python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/score.py" "$PWD" 2>/dev/null || echo '{}'`
+!`SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"; python3 "$SF_ROOT/scripts/score.py" "$PWD" 2>/dev/null || echo '{}'`
 
 Selections (persistent across sessions):
 !`cat ~/.claude/skillforge/selections.json 2>/dev/null || echo '{}'`
@@ -62,28 +69,41 @@ Pending checkbox state (staging area for `setup` → `confirm` flow):
 
 ## Behavior
 
+**Before running any bash command** that invokes a script from this
+plugin, resolve the plugin root. Prefix every Bash tool call with:
+
+```bash
+SF_ROOT="${CLAUDE_PLUGIN_ROOT:-$(ls -d ~/.claude/plugins/cache/*/skillforge/*/ 2>/dev/null | tail -1 | sed 's:/$::')}"
+```
+
+Then call scripts as `python3 "$SF_ROOT/scripts/<name>.py" …` or
+`bash "$SF_ROOT/hooks/<name>.sh" …`. Never reference `${CLAUDE_PLUGIN_ROOT}`
+bare — Claude Code doesn't reliably export it into slash-command bash
+subshells, and the fallback `$PWD` points at the user's working project,
+not this plugin.
+
 1. **Parse the argument** from `$ARGUMENTS`.
 
 2. **If the index is `missing`:**
-   - If argument is `refresh` or `setup`, run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/refresh_index.py" --force --verbose` and wait for it to finish, then re-read state.
+   - If argument is `refresh` or `setup`, run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --verbose` and wait for it to finish, then re-read state.
    - For any other argument, tell the user the index is missing and suggest `/skillforge refresh`, then stop.
 
-3. **If the index is `stale`:** silently run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/refresh_index.py" &` to kick off a background refresh. Serve the cached index in the meantime.
+3. **If the index is `stale`:** silently run `python3 "$SF_ROOT/scripts/refresh_index.py" &` to kick off a background refresh. Serve the cached index in the meantime.
 
 4. **Routing:**
    - `profile` → dump the profile JSON verbatim as a fenced block. Stop.
    - `sources` → list active sources, their types, their last fetch status. Stop.
    - `refresh` → run `refresh_index.py --force --verbose`, report the outcome. Stop.
-   - `add <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/install_skill.py" <id>`, report the outcome, then show the updated selections count. Stop.
+   - `add <id>` → run `python3 "$SF_ROOT/scripts/install_skill.py" <id>`, report the outcome, then show the updated selections count. Stop.
    - `remove <id>` → run `rm -rf ~/.claude/skills/<id>` and update `~/.claude/skillforge/selections.json` to drop the id. No confirmation prompt; this is explicit user intent. Stop.
-   - `setup` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" seed "$PWD"` (writes pending.json with all recommended skills pre-checked), then run `pending.py render` and print its output. Append: "Review the checklist above. Run `/skillforge skip <id>` to uncheck unwanted skills, then `/skillforge confirm` to install everything still checked." Stop.
-   - `skip <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" skip <id>`, then `pending.py render` to show the updated checklist. Stop.
-   - `check <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" check <id>`, then `pending.py render`. Stop.
-   - `confirm` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" confirm` and report the result. If any installs failed, the pending file is preserved so the user can `/skillforge confirm` again after resolving issues. Stop.
-   - `clear` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" clear`. Stop.
-   - `export cursor` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/convert.py" --agent cursor --out "$PWD" --json`. Parse the JSON summary and report: number of `.mdc` files written, destination dir, any skipped skills with warnings. Stop.
-   - `export codex` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/convert.py" --agent codex --out "$PWD" --json`. Parse the JSON summary and report: `AGENTS.md` path, number of skills bundled, warnings about non-portable scripts/references. Remind the user that user-authored content outside the `<!-- skillforge:start -->` / `<!-- skillforge:end -->` markers is preserved. Stop.
-   - `audit` → for each installed skill, invoke `scripts/audit_skill.py`. Report a table. In this iteration every row reports `unavailable`.
+   - `setup` → run `python3 "$SF_ROOT/scripts/pending.py" seed "$PWD"` (writes pending.json with all recommended skills pre-checked), then run `python3 "$SF_ROOT/scripts/pending.py" render` and print its output. Append: "Review the checklist above. Run `/skillforge skip <id>` to uncheck unwanted skills, then `/skillforge confirm` to install everything still checked." Stop.
+   - `skip <id>` → run `python3 "$SF_ROOT/scripts/pending.py" skip <id>`, then `python3 "$SF_ROOT/scripts/pending.py" render` to show the updated checklist. Stop.
+   - `check <id>` → run `python3 "$SF_ROOT/scripts/pending.py" check <id>`, then `python3 "$SF_ROOT/scripts/pending.py" render`. Stop.
+   - `confirm` → run `python3 "$SF_ROOT/scripts/pending.py" confirm` and report the result. If any installs failed, the pending file is preserved so the user can `/skillforge confirm` again after resolving issues. Stop.
+   - `clear` → run `python3 "$SF_ROOT/scripts/pending.py" clear`. Stop.
+   - `export cursor` → run `python3 "$SF_ROOT/scripts/convert.py" --agent cursor --out "$PWD" --json`. Parse the JSON summary and report: number of `.mdc` files written, destination dir, any skipped skills with warnings. Stop.
+   - `export codex` → run `python3 "$SF_ROOT/scripts/convert.py" --agent codex --out "$PWD" --json`. Parse the JSON summary and report: `AGENTS.md` path, number of skills bundled, warnings about non-portable scripts/references. Remind the user that user-authored content outside the `<!-- skillforge:start -->` / `<!-- skillforge:end -->` markers is preserved. Stop.
+   - `audit` → for each installed skill, invoke `python3 "$SF_ROOT/scripts/audit_skill.py"`. Report a table. In this iteration every row reports `unavailable`.
    - `status` / (empty) → proceed to step 5.
 
 5. **Render recommendations using the grouped structure.**
