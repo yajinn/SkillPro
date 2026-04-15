@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "defaults": [
+    {
+      "type": "marketplace",
+      "name": "Anthropic Skills",
+      "url": "https://raw.githubusercontent.com/anthropics/skills/main/.claude-plugin/marketplace.json",
+      "require_audit": false
+    },
+    {
+      "type": "awesome-list",
+      "name": "awesome-claude-skills",
+      "url": "https://raw.githubusercontent.com/travisvn/awesome-claude-skills/main/README.md",
+      "require_audit": false
+    },
+    {
+      "type": "awesome-list",
+      "name": "awesome-claude-plugins",
+      "url": "https://raw.githubusercontent.com/quemsah/awesome-claude-plugins/main/README.md",
+      "require_audit": false
+    }
+  ]
+}

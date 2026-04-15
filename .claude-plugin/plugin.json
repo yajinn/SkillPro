@@ -1,0 +1,23 @@
+{
+  "name": "skillforge",
+  "version": "1.0.0",
+  "description": "Zero-config federated skill discovery for AI coding agents. Detects your project's language/framework, fetches skills from marketplace.json and awesome-list sources, scores them against your profile, and installs only what you pick. Ships with an always-on audit gate.",
+  "author": {
+    "name": "Yasin Coşkun"
+  },
+  "homepage": "https://github.com/yajinn/skillforge",
+  "repository": "https://github.com/yajinn/skillforge",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "plugin",
+    "discovery",
+    "federated",
+    "audit",
+    "security",
+    "zero-config",
+    "profile-driven",
+    "marketplace"
+  ],
+  "hooks": "./hooks/hooks.json"
+}

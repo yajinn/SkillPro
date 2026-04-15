@@ -1,0 +1,32 @@
+{
+  "name": "skillforge",
+  "description": "Zero-config federated skill discovery for AI coding agents",
+  "owner": {
+    "name": "Yasin Coşkun"
+  },
+  "metadata": {
+    "description": "The SkillForge tool itself — detector, scorer, audit gate, runtime hooks",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "skillforge",
+      "description": "Detects your project, fetches a federated skill index, scores it against your profile, audits every candidate, and installs only what you pick.",
+      "source": "./",
+      "version": "1.0.0",
+      "strict": false,
+      "author": {
+        "name": "Yasin Coşkun"
+      },
+      "keywords": [
+        "skills",
+        "discovery",
+        "federated",
+        "audit",
+        "security",
+        "zero-config",
+        "profile-driven"
+      ]
+    }
+  ]
+}

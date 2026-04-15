@@ -1,0 +1,87 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unittest:
+    name: Unit and integration tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install jq (needed by detect.sh)
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y jq
+          fi
+          jq --version
+
+      - name: Run detector against the repo itself
+        run: bash hooks/detect.sh "$PWD"
+
+      - name: Validate project profile JSON
+        run: jq -e . .claude/project-profile.json
+
+      - name: Run full test suite
+        run: python3 -m unittest discover tests -v
+
+      - name: Sanity check — audit gate on its own package
+        run: |
+          python3 scripts/audit_skill.py scripts/audit_rules > audit-result.json
+          jq -e '.status == "passed"' audit-result.json
+
+  plugin-structure:
+    name: Plugin structure checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Verify required plugin files exist
+        run: |
+          for f in .claude-plugin/plugin.json marketplace.json hooks/hooks.json \
+                   commands/skillforge.md config/sources.json \
+                   scripts/refresh_index.py scripts/score.py \
+                   scripts/install_skill.py scripts/audit_skill.py \
+                   SECURITY.md README.md CHANGELOG.md LICENSE CONTRIBUTING.md; do
+            test -f "$f" || { echo "missing: $f"; exit 1; }
+          done
+          echo "all required files present"
+
+      - name: Validate manifest
+        run: jq -e '.name == "skillforge"' .claude-plugin/plugin.json
+
+      - name: Validate marketplace.json
+        run: jq -e '.plugins | length > 0' marketplace.json
+
+      - name: Validate hooks.json shape
+        run: jq -e '.SessionStart and .PreToolUse and .PostToolUse' hooks/hooks.json
+
+      - name: Validate sources.json shape
+        run: jq -e '.defaults | length > 0' config/sources.json
+
+      - name: No legacy catalog.json
+        run: |
+          if [ -f config/catalog.json ]; then
+            echo "config/catalog.json should have been removed"
+            exit 1
+          fi
+          echo "ok: no legacy catalog"

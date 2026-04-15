@@ -1,0 +1,36 @@
+{
+  "name": "fake-marketplace",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "core-layers",
+      "description": "Universal skills",
+      "skills": [
+        {
+          "id": "security-guardian",
+          "name": "Security Guardian",
+          "description": "Secret detection, input validation, XSS/CSRF/SQLi, auth best practices",
+          "tags": ["has_user_input", "has_api", "has_web", "has_db", "handles_auth"],
+          "boost_when": ["serves_public", "has_ecommerce"],
+          "penalize_when": [],
+          "default_for": ["web-frontend", "backend-api", "mobile", "cms-web", "cli-tool"],
+          "install_url": "http://127.0.0.1:$PORT/security-guardian/SKILL.md",
+          "commit_sha": "deadbeef1234",
+          "version": "1.0.0"
+        },
+        {
+          "id": "git-safety",
+          "name": "Git Safety",
+          "description": "Branch protection, force-push prevention",
+          "tags": ["any"],
+          "boost_when": ["has_ci"],
+          "penalize_when": [],
+          "default_for": ["web-frontend", "backend-api", "mobile", "cli-tool", "library"],
+          "install_url": "http://127.0.0.1:$PORT/git-safety/SKILL.md",
+          "commit_sha": "cafef00d5678",
+          "version": "1.0.0"
+        }
+      ]
+    }
+  ]
+}
