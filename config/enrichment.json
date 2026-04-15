@@ -209,6 +209,77 @@
       "category": "framework/flutter",
       "match_libraries": ["flutter-bloc", "bloc"],
       "notes": "Example library-anchored skill. Fires when either the flutter_bloc or plain bloc package is detected in pubspec.yaml."
+    },
+
+    "brainstorming": {
+      "category": "planning/methodology",
+      "tags": ["any"],
+      "notes": "Universal meta-skill for turning ideas into designs. Applies to every project."
+    },
+    "writing-plans": {
+      "category": "planning/methodology",
+      "tags": ["any"],
+      "notes": "Universal meta-skill for converting specs into implementation plans."
+    },
+    "executing-plans": {
+      "category": "planning/methodology",
+      "tags": ["any"],
+      "notes": "Universal meta-skill — the execution counterpart to writing-plans."
+    },
+    "debugging": {
+      "category": "quality/debugging",
+      "tags": ["any"],
+      "notes": "Universal root-cause-analysis skill. Every project needs debugging patterns."
+    },
+    "refactoring": {
+      "category": "quality/refactoring",
+      "tags": ["any"],
+      "notes": "Universal refactoring discipline. Applies to any codebase."
+    },
+    "writing-tests": {
+      "category": "quality/testing",
+      "tags": ["any"],
+      "notes": "Universal test-writing discipline. Every project benefits."
+    },
+    "using-git-worktrees": {
+      "category": "quality/workflow",
+      "tags": ["any"],
+      "notes": "Isolated workspace pattern for any git-based project."
+    },
+    "finishing-a-development-branch": {
+      "category": "quality/workflow",
+      "tags": ["any"],
+      "notes": "End-of-development checklist. Applies universally."
+    },
+    "subagent-driven-development": {
+      "category": "meta/skill-authoring",
+      "tags": ["any"],
+      "notes": "Parallel agent workflow. Universal applicability for complex work."
+    },
+    "receiving-code-review": {
+      "category": "quality/review",
+      "tags": ["any"],
+      "notes": "How to act on code review feedback. Universal."
+    },
+    "testing-anti-patterns": {
+      "category": "quality/testing",
+      "tags": ["any"],
+      "notes": "What NOT to do in tests. Universal."
+    },
+    "condition-based-waiting": {
+      "category": "quality/workflow",
+      "tags": ["any"],
+      "notes": "Pattern for avoiding race conditions in async testing/scripts."
+    },
+    "general-coding-tips": {
+      "category": "quality/review",
+      "tags": ["any"],
+      "notes": "Broad code-quality catch-all."
+    },
+    "creating-skills": {
+      "category": "meta/skill-authoring",
+      "tags": ["any"],
+      "notes": "How to author a skill. Relevant to anyone using Claude Code."
     }
   }
 }

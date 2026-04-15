@@ -8,6 +8,12 @@
       "require_audit": false
     },
     {
+      "type": "marketplace",
+      "name": "Superpowers (obra)",
+      "url": "https://raw.githubusercontent.com/obra/superpowers/main/.claude-plugin/marketplace.json",
+      "require_audit": false
+    },
+    {
       "type": "awesome-list",
       "name": "awesome-claude-skills",
       "url": "https://raw.githubusercontent.com/travisvn/awesome-claude-skills/main/README.md",
