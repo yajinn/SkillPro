@@ -13,8 +13,8 @@ scope, so contributions should stay focused on one of four areas:
 
 Anything outside these categories — adding new commands, redesigning
 the scoring algorithm, shipping first-party skills in this repo —
-should be discussed in an issue first. See `PRD.md` for the design
-boundary.
+should be discussed in an issue first. See `README.md` for the
+architecture overview and the design boundary.
 
 ## Development setup
 
@@ -116,7 +116,7 @@ each language and framework.
 1. Add the detection block to the appropriate section of `detect.sh`.
 2. Add the new language/framework to the audit commands section if
    there's a linter/formatter/test runner to invoke.
-3. Update the framework coverage in `README.md` and `PRD.md`.
+3. Update the framework coverage in `README.md`.
 4. If possible, add an integration test with a synthetic fixture
    project. See the end-to-end test in `tests/test_end_to_end.py` for
    the pattern.

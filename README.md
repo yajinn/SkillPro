@@ -15,9 +15,6 @@ explicitly pick.
 > No company lock-in, no language bias, no skills shipped inside the tool
 > itself.
 
-See [PRD.md](./PRD.md) for the full design, and the architecture specs under
-[docs/superpowers/specs/](./docs/superpowers/specs/).
-
 ## Install
 
 ### Primary: Claude Code plugin marketplace
@@ -237,14 +234,14 @@ a different source set.
 ```
 skillforge/
 ├── .claude-plugin/
-│   └── plugin.json              # Plugin manifest (required)
-├── marketplace.json             # Claude Code marketplace listing
-├── PRD.md
+│   ├── plugin.json              # Plugin manifest (required)
+│   └── marketplace.json         # Claude Code marketplace listing
 ├── README.md
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
 ├── SECURITY.md
 ├── LICENSE
+├── index.html                   # GitHub Pages landing
 ├── commands/
 │   └── skillforge.md            # /skillforge slash command
 ├── hooks/
@@ -258,10 +255,16 @@ skillforge/
 │   ├── score.py                 # Relevance scoring
 │   ├── install_skill.py         # Fetch + audit + install
 │   ├── audit_skill.py           # Audit gate entry point
+│   ├── pending.py               # Pre-checked checkbox staging
+│   ├── convert.py               # Multi-agent exporter
 │   ├── source_adapters/
 │   │   ├── base.py
 │   │   ├── marketplace.py
-│   │   └── awesome_list.py
+│   │   ├── awesome_list.py
+│   │   └── sitemap_aggregator.py
+│   ├── converters/
+│   │   ├── cursor.py            # → .cursor/rules/*.mdc
+│   │   └── codex.py             # → AGENTS.md managed section
 │   └── audit_rules/
 │       ├── base.py
 │       ├── patterns.py
@@ -271,17 +274,12 @@ skillforge/
 ├── config/
 │   ├── sources.json             # Built-in source whitelist
 │   └── enrichment.json          # Hand-curated metadata overlays
-├── tests/                       # 105 unit + integration + e2e tests
+├── tests/                       # 248 unit + integration + e2e tests
 │   ├── fixtures/
 │   └── test_*.py
-├── docs/
-│   └── superpowers/
-│       ├── specs/
-│       └── plans/
-├── .github/
-│   └── workflows/
-│       └── test.yml             # CI: tests + plugin-structure checks
-└── v1-reference/                # Legacy v1/v2 artifacts (reference only)
+└── .github/
+    └── workflows/
+        └── test.yml             # CI: tests + plugin-structure checks
 ```
 
 ## Requirements
