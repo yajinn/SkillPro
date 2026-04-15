@@ -9,7 +9,7 @@
   <meta property="og:description" content="Zero-config skill discovery for AI coding agents. Federated, audited, multi-platform.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://github.com/yajinn/SkillForge">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230F172A'/%3E%3Ctext x='4' y='22' font-family='monospace' font-weight='700' font-size='20' fill='%2322C55E'%3E%26gt;_%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230F172A'/%3E%3Ctext x='4' y='22' font-family='monospace' font-weight='700' font-size='20' fill='%23F97316'%3E%26gt;_%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
             iron:   '#334155',
             chalk:  '#F8FAFC',
             fog:    '#94A3B8',
-            run:    '#22C55E',
+            run:    '#F97316',
             warn:   '#F59E0B',
             hot:    '#F43F5E',
           },
@@ -70,7 +70,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(180deg, rgba(34,197,94,0) 0%, rgba(34,197,94,0.08) 50%, rgba(34,197,94,0) 100%);
+      background: linear-gradient(180deg, rgba(249,115,22,0) 0%, rgba(249,115,22,0.08) 50%, rgba(249,115,22,0) 100%);
       height: 200%;
       animation: scan 8s linear infinite;
       mix-blend-mode: screen;
@@ -85,10 +85,10 @@
     .ascii { white-space: pre; line-height: 1.0; }
     .brutal {
       border: 3px solid #F8FAFC;
-      box-shadow: 8px 8px 0 0 #22C55E;
+      box-shadow: 8px 8px 0 0 #F97316;
       transition: transform 200ms ease, box-shadow 200ms ease;
     }
-    .brutal:hover { transform: translate(-3px, -3px); box-shadow: 12px 12px 0 0 #22C55E; }
+    .brutal:hover { transform: translate(-3px, -3px); box-shadow: 12px 12px 0 0 #F97316; }
     .brutal-alt { border: 3px solid #F8FAFC; box-shadow: 8px 8px 0 0 #F43F5E; transition: transform 200ms ease, box-shadow 200ms ease; }
     .brutal-alt:hover { transform: translate(-3px, -3px); box-shadow: 12px 12px 0 0 #F43F5E; }
     .brutal-cold { border: 3px solid #F8FAFC; box-shadow: 8px 8px 0 0 #334155; transition: transform 200ms ease, box-shadow 200ms ease; }
@@ -96,12 +96,12 @@
     .caret::after {
       content: "\2588";
       margin-left: 2px;
-      color: #22C55E;
+      color: #F97316;
       animation: blink 1.1s step-end infinite;
     }
     .marquee { display: flex; overflow: hidden; white-space: nowrap; }
     .marquee-track { display: flex; gap: 3rem; animation: drift 22s linear infinite; will-change: transform; }
-    :focus-visible { outline: 3px solid #22C55E; outline-offset: 4px; }
+    :focus-visible { outline: 3px solid #F97316; outline-offset: 4px; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: 0.001ms !important;
@@ -109,7 +109,7 @@
         transition-duration: 0.001ms !important;
       }
     }
-    ::selection { background: #22C55E; color: #0F172A; }
+    ::selection { background: #F97316; color: #0F172A; }
   </style>
 </head>
 <body class="min-h-screen overflow-x-hidden">
