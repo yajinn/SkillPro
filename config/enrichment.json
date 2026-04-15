@@ -95,6 +95,74 @@
       "tags": ["has_web"],
       "default_for": ["web-frontend", "web-fullstack"],
       "notes": "Browser automation for agents. Useful for web projects that need scraping/testing."
+    },
+
+    "bmad-code-review": {
+      "tags": ["any"],
+      "boost_when": ["has_ci"],
+      "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
+      "notes": "Adversarial code review with parallel layers (Blind Hunter, Edge Case Hunter, Acceptance Auditor). Universal value across all code-producing project types."
+    },
+    "bmad-review-edge-case-hunter": {
+      "tags": ["any"],
+      "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
+      "notes": "Exhaustive edge case analysis of code, specs, and diffs. Method-driven boundary walking. Pairs well with testing-qa for comprehensive coverage."
+    },
+    "bmad-review-adversarial-general": {
+      "tags": ["any"],
+      "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
+      "notes": "Cynical review producing findings reports. Useful for any critical review session — code, design, specs, plans."
+    },
+    "bmad-qa-generate-e2e-tests": {
+      "tags": ["has_web", "has_api", "has_mobile_ui"],
+      "boost_when": ["has_ci", "serves_public"],
+      "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile"],
+      "notes": "Generates end-to-end automated tests for existing features. Needs a UI or API surface to test; CLI tools and libraries get marginal value."
+    },
+    "bmad-quick-dev": {
+      "tags": [],
+      "default_for": [],
+      "notes": "General-purpose code-writing skill. Too broad to recommend by default — heuristic keeps it in optional unless the user explicitly asks."
+    },
+    "bmad-create-architecture": {
+      "tags": ["has_api", "has_db", "serves_traffic"],
+      "default_for": ["backend-api", "web-fullstack", "mobile"],
+      "notes": "Technical architecture design. High-value for projects with real backend complexity; trivial for pure frontend or CLI tools."
+    },
+    "bmad-create-prd": {
+      "tags": [],
+      "default_for": [],
+      "notes": "Create a product requirements document. Pre-dev phase — no characteristic-based signal for project match. User invokes explicitly during planning."
+    },
+    "bmad-edit-prd": {
+      "tags": [],
+      "default_for": [],
+      "notes": "Edit an existing PRD. Same pre-dev rationale as bmad-create-prd."
+    },
+    "bmad-brainstorming": {
+      "tags": [],
+      "default_for": [],
+      "notes": "Interactive brainstorming sessions. Meta-skill, user-invoked. No automatic recommendation."
+    },
+    "bmad-help": {
+      "tags": [],
+      "default_for": [],
+      "notes": "BMAD navigation helper. Only useful inside a BMAD methodology workflow — not generally applicable."
+    },
+    "bmad-distillator": {
+      "tags": [],
+      "default_for": [],
+      "notes": "Lossless document compression. Niche utility — user-invoked on specific documents."
+    },
+    "bmad-editorial-review-prose": {
+      "tags": [],
+      "default_for": ["library"],
+      "notes": "Copy-editor for prose communication issues. Most applicable to library/docs projects that ship extensive documentation."
+    },
+    "bmad-editorial-review-structure": {
+      "tags": [],
+      "default_for": ["library"],
+      "notes": "Structural editor for reorganization and cuts. Same prose rationale."
     }
   }
 }
