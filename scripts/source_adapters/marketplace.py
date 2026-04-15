@@ -47,6 +47,17 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .base import HttpGet, SkillEntry, parse_json_bytes
 
+# Tree API cache — optional import so marketplace.py stays usable if
+# tree_cache isn't on sys.path. When present, every _discover_skills_via_tree_api
+# call checks the cache first and stores successful results for reuse.
+try:
+    _SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+    if str(_SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(_SCRIPTS_DIR))
+    import tree_cache  # type: ignore
+except ImportError:
+    tree_cache = None  # type: ignore
+
 
 # ---------------------------------------------------------------------------
 # Heuristic keyword -> tag mapping for Shape B (description-based inference)
@@ -562,19 +573,29 @@ class MarketplaceAdapter:
     ) -> List[str]:
         """List skill directories in a repo via the GitHub Trees API.
 
-        One HTTP request per repo; returns relative paths like
-        `skills/brainstorming`. Returns [] on any failure (rate-limit,
-        404, parse error). Once a rate-limit error is observed, the
-        process-wide circuit breaker short-circuits all subsequent
-        calls to return [] immediately — suppresses noise and speeds
-        up the rest of the refresh.
+        Uses the local tree_cache if available to avoid repeated network
+        calls within the 24-hour TTL window. On cache miss, fetches
+        one request to api.github.com, parses the tree, and stores the
+        result. Returns [] on any failure (rate-limit, 404, parse error).
+        Once a rate-limit error is observed, the process-wide circuit
+        breaker short-circuits all subsequent calls to return []
+        immediately — suppresses noise and speeds up the rest of the
+        refresh.
         """
         global _TREE_API_RATE_LIMITED
-        if _TREE_API_RATE_LIMITED:
-            return []
         api_url = (
             f"https://api.github.com/repos/{owner}/{repo}/git/trees/{ref}?recursive=1"
         )
+
+        # Cache lookup — empty list [] is a valid cached result
+        # (we walked this repo before, found zero skills).
+        if tree_cache is not None:
+            cached = tree_cache.get(api_url)
+            if cached is not None:
+                return cached
+
+        if _TREE_API_RATE_LIMITED:
+            return []
         try:
             body = http_get(api_url)
         except IOError as exc:
@@ -616,6 +637,15 @@ class MarketplaceAdapter:
                 if "" not in seen:
                     seen.add("")
                     dirs.append("")
+
+        # Persist the result — including empty lists — so the next
+        # refresh within the TTL window skips this API call entirely.
+        if tree_cache is not None:
+            try:
+                tree_cache.put(api_url, dirs)
+            except Exception:
+                pass  # cache write errors shouldn't break discovery
+
         return dirs
 
     @staticmethod

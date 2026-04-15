@@ -27,6 +27,23 @@ from source_adapters.marketplace import (  # noqa: E402
     _reset_enrichment_cache,
     _reset_tree_api_rate_limit,
 )
+import tree_cache  # noqa: E402
+
+
+def _isolate_tree_cache(test_instance):
+    """Patch tree_cache._cache_path to a unique temp file per test.
+    Call from setUp; teardown is handled by addCleanup."""
+    import tempfile
+    from unittest.mock import patch as _patch
+    tmp = tempfile.mkdtemp()
+    cache_file = Path(tmp) / "tree-cache.json"
+    p = _patch.object(tree_cache, "_cache_path", return_value=cache_file)
+    p.start()
+    def _cleanup():
+        p.stop()
+        import shutil
+        shutil.rmtree(tmp, ignore_errors=True)
+    test_instance.addCleanup(_cleanup)
 
 
 def make_http(route_map: dict):
@@ -80,6 +97,7 @@ class TestParseGithubRawUrl(unittest.TestCase):
 class TestDiscoverSkillsViaTreeApi(unittest.TestCase):
     def setUp(self):
         _reset_tree_api_rate_limit()
+        _isolate_tree_cache(self)
 
     def test_extracts_skill_dirs_from_tree_response(self):
         tree_doc = {
@@ -208,6 +226,7 @@ class TestShapeCIntegration(unittest.TestCase):
     def setUp(self):
         _reset_enrichment_cache()
         _reset_tree_api_rate_limit()
+        _isolate_tree_cache(self)
         self.adapter = MarketplaceAdapter()
 
     def tearDown(self):
