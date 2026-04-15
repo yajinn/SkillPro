@@ -1,6 +1,6 @@
 ---
 description: Detect the current project and manage SkillForge's federated skill index
-argument-hint: "[setup|refresh|sources|add <id>|remove <id>|audit|profile]"
+argument-hint: "[setup|refresh|sources|add <id>|remove <id>|skip <id>|check <id>|confirm|clear|audit|profile]"
 allowed-tools: Bash, Read, Write, Edit
 ---
 
@@ -14,11 +14,15 @@ index against the detected project profile, and installs skills on demand.
 ## Argument routing
 
 - (no argument) or `status` → show detected project + installed skills + recommendation summary
-- `setup` → refresh the index if TTL expired, then show interactive recommendations
+- `setup` → refresh the index if TTL expired, **seed pending.json with all recommended skills pre-checked**, render the checkbox list
 - `refresh` → force-refresh the index, ignoring TTL
 - `sources` → print the active source list + last fetch status per source
-- `add <id>` → install a single skill by id
+- `add <id>` → install a single skill by id (legacy opt-in path; kept for one-off installs outside the pending flow)
 - `remove <id>` → uninstall and drop from selections
+- **`skip <id>`** → uncheck an item in pending.json (won't be installed on confirm)
+- **`check <id>`** → re-check a previously skipped item
+- **`confirm`** → install every checked item from pending.json in one batch
+- **`clear`** → drop pending.json without installing anything
 - `audit` → run the audit gate on every installed skill (Phase 7 stub, reports "unavailable")
 - `profile` → dump the full `.claude/project-profile.json`
 
@@ -51,6 +55,9 @@ Skill recommendations (blank if index is missing — tell the user to run /skill
 Selections (persistent across sessions):
 !`cat ~/.claude/skillforge/selections.json 2>/dev/null || echo '{}'`
 
+Pending checkbox state (staging area for `setup` → `confirm` flow):
+!`cat ~/.claude/skillforge/pending.json 2>/dev/null || echo '{}'`
+
 ## Behavior
 
 1. **Parse the argument** from `$ARGUMENTS`.
@@ -65,11 +72,15 @@ Selections (persistent across sessions):
    - `profile` → dump the profile JSON verbatim as a fenced block. Stop.
    - `sources` → list active sources, their types, their last fetch status. Stop.
    - `refresh` → run `refresh_index.py --force --verbose`, report the outcome. Stop.
-   - `add <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/install_skill.py" <id>`, report the outcome, then show the updated selections count.
-   - `remove <id>` → run `rm -rf ~/.claude/skills/<id>` and update `~/.claude/skillforge/selections.json` to drop the id. No confirmation prompt; this is explicit user intent.
+   - `add <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/install_skill.py" <id>`, report the outcome, then show the updated selections count. Stop.
+   - `remove <id>` → run `rm -rf ~/.claude/skills/<id>` and update `~/.claude/skillforge/selections.json` to drop the id. No confirmation prompt; this is explicit user intent. Stop.
+   - `setup` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" seed "$PWD"` (writes pending.json with all recommended skills pre-checked), then run `pending.py render` and print its output. Append: "Review the checklist above. Run `/skillforge skip <id>` to uncheck unwanted skills, then `/skillforge confirm` to install everything still checked." Stop.
+   - `skip <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" skip <id>`, then `pending.py render` to show the updated checklist. Stop.
+   - `check <id>` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" check <id>`, then `pending.py render`. Stop.
+   - `confirm` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" confirm` and report the result. If any installs failed, the pending file is preserved so the user can `/skillforge confirm` again after resolving issues. Stop.
+   - `clear` → run `python3 "${CLAUDE_PLUGIN_ROOT:-$PWD}/scripts/pending.py" clear`. Stop.
    - `audit` → for each installed skill, invoke `scripts/audit_skill.py`. Report a table. In this iteration every row reports `unavailable`.
    - `status` / (empty) → proceed to step 5.
-   - `setup` → proceed to step 5 with the explicit invitation "Which skills do you want? Reply `/skillforge add <id>` for each."
 
 5. **Render recommendations using the grouped structure.**
    The scoring engine emits `grouped.recommended` and `grouped.optional`
@@ -113,7 +124,9 @@ Selections (persistent across sessions):
 
 6. **Footer lines:**
    - "Index: N skills from M sources, fetched <relative time> ago."
+   - "Detected libraries: `lib1, lib2, ...`" — pulled from `project-profile.json` `libraries` array. Skip the line entirely if empty. This is the user's confirmation that deep introspection ran.
    - If `partial: true`: "⚠️ Partial index — some sources failed to fetch. Run `/skillforge sources` to see which."
-   - "Run `/skillforge add <id>` to install. Selections persist in `~/.claude/skillforge/selections.json`."
+   - If pending.json exists with checked items: "📋 Pending: N skill(s) ready to install. Run `/skillforge confirm` to apply, `/skillforge clear` to discard."
+   - Otherwise: "Run `/skillforge setup` to seed a pre-checked install list, or `/skillforge add <id>` for one-off installs."
 
-7. **Never install anything automatically.** Recommendations are suggestions, not actions.
+7. **Never install anything automatically.** Recommendations are suggestions, not actions. The `confirm` verb is the only path that actually installs; all other commands manipulate pending state.
