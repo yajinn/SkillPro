@@ -170,7 +170,7 @@
  ███████║██║  ██╗██║███████╗███████╗██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
  ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝</pre>
 
-    <h1 class="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight max-w-4xl">
+    <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight max-w-4xl">
       ZERO-CONFIG<br>
       <span class="text-run">SKILL DISCOVERY</span><br>
       FOR AI CODING AGENTS<span class="caret"></span>
@@ -196,7 +196,7 @@
         </div>
         <div class="flex items-center gap-3 p-5">
           <span class="text-run font-bold select-none">$</span>
-          <code id="install-cmd" class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/skillforge</code>
+          <code id="install-cmd" class="flex-1 text-chalk text-base md:text-lg break-all">/plugin marketplace add yajinn/skillforge</code>
           <button onclick="copyInstall(this)"
                   class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0"
                   aria-label="Copy install command">
@@ -237,7 +237,7 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="mb-16">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 00 / PIPELINE</div>
-      <h2 class="text-4xl md:text-6xl font-bold">HOW IT<br>WORKS<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">HOW IT<br>WORKS<span class="text-run">.</span></h2>
       <p class="mt-4 text-fog max-w-xl">Four stages. Each runs once per session, cached aggressively, and never touches the network after the TTL window.</p>
     </div>
 
@@ -294,7 +294,7 @@
   <div class="max-w-5xl mx-auto px-4">
     <div class="mb-10">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 01 / DEMO</div>
-      <h2 class="text-4xl md:text-6xl font-bold">LIVE RUN<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">LIVE RUN<span class="text-run">.</span></h2>
       <p class="mt-4 text-fog max-w-xl">Real output shape from a Next.js + TanStack Query + Drizzle project.</p>
     </div>
 
@@ -307,7 +307,7 @@
         </div>
         <div class="flex-1 text-center text-xs text-fog">/skillforge setup &middot; next-app ~/code/demo</div>
       </div>
-      <pre class="p-5 md:p-8 text-xs md:text-sm leading-relaxed overflow-x-auto"><span class="text-fog">$ /skillforge setup</span>
+      <pre class="p-5 md:p-8 text-sm md:text-base leading-relaxed overflow-x-auto"><span class="text-fog">$ /skillforge setup</span>
 
 <span class="text-run">&#9656;</span> Detecting project...
   <span class="text-chalk">language:</span>  <span class="text-run">typescript</span>
@@ -349,7 +349,7 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="mb-16">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 02 / CAPABILITIES</div>
-      <h2 class="text-4xl md:text-6xl font-bold">SIX THINGS IT<br>DOES WELL<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">SIX THINGS IT<br>DOES WELL<span class="text-run">.</span></h2>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-6 gap-8">
@@ -463,11 +463,11 @@
   <div class="max-w-5xl mx-auto px-4">
     <div class="mb-12">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 03 / REFERENCE</div>
-      <h2 class="text-4xl md:text-6xl font-bold">COMMAND<br>SURFACE<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">COMMAND<br>SURFACE<span class="text-run">.</span></h2>
     </div>
 
     <div class="brutal bg-ink p-6 md:p-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-base">
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">/skillforge</code><span class="text-fog">status dump</span></div>
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">setup</code><span class="text-fog">seed pending.json</span></div>
         <div class="flex gap-4"><code class="text-run font-bold w-32 shrink-0">refresh</code><span class="text-fog">force-refresh index</span></div>
@@ -492,7 +492,7 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="mb-16">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 04 / EXPORT</div>
-      <h2 class="text-4xl md:text-6xl font-bold">REUSE<br>EVERYWHERE<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">REUSE<br>EVERYWHERE<span class="text-run">.</span></h2>
       <p class="mt-4 text-fog max-w-xl">Curate once. Export to other agents in their native format. Single source of truth stays in <code class="text-chalk">~/.claude/skills/</code>.</p>
     </div>
 
@@ -509,7 +509,7 @@
           One <code class="text-chalk">.mdc</code> file per skill under <code class="text-chalk">.cursor/rules/</code>.
           Description-triggered activation, not always-on.
         </p>
-        <pre class="bg-ink p-4 border-2 border-chalk text-xs overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export cursor</span>
+        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export cursor</span>
 <span class="text-run">&#9656;</span> Writing 14 rules to .cursor/rules/
   <span class="text-run">+</span> brainstorming.mdc
   <span class="text-run">+</span> python-pro.mdc
@@ -529,7 +529,7 @@
           Single <code class="text-chalk">AGENTS.md</code> with a managed section.
           Your user content outside the markers is preserved across re-exports.
         </p>
-        <pre class="bg-ink p-4 border-2 border-chalk text-xs overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export codex</span>
+        <pre class="bg-ink p-4 border-2 border-chalk text-sm overflow-x-auto"><span class="text-fog">$</span> <span class="text-chalk">/skillforge export codex</span>
 <span class="text-hot">&#9656;</span> Bundling 14 skills &rarr; AGENTS.md
 <span class="text-hot">&#9656;</span> Preserved user content outside markers
 
@@ -551,7 +551,7 @@
   <div class="max-w-7xl mx-auto px-4">
     <div class="mb-12">
       <div class="text-fog text-xs tracking-[0.3em] mb-2">&gt; 05 / SHIPPED</div>
-      <h2 class="text-4xl md:text-6xl font-bold">NINE OUT OF TEN<br>PHASES DONE<span class="text-run">.</span></h2>
+      <h2 class="text-5xl md:text-7xl font-bold">NINE OUT OF TEN<br>PHASES DONE<span class="text-run">.</span></h2>
     </div>
 
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -590,7 +590,7 @@
       <div class="brutal bg-slab p-0 overflow-hidden">
         <div class="flex items-center gap-3 p-5">
           <span class="text-run font-bold select-none">$</span>
-          <code class="flex-1 text-chalk text-sm md:text-base text-left break-all">/plugin marketplace add yajinn/skillforge</code>
+          <code class="flex-1 text-chalk text-base md:text-lg text-left break-all">/plugin marketplace add yajinn/skillforge</code>
           <button onclick="copyInstall(this)"
                   class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-2 cursor-pointer shrink-0">
             COPY
