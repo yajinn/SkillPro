@@ -3,163 +3,194 @@
   "description": "Hand-curated scoring metadata for known real-world skills. Merged into inferred SkillEntry data after heuristic tag inference runs. Users can override by creating ~/.claude/skillforge/enrichment.json — the user file FULLY REPLACES this one, it does not merge.",
   "enrichment": {
     "xlsx": {
+      "category": "docs/office",
       "tags": ["has_db", "data_pipeline"],
       "default_for": ["data-ml", "backend-api"],
       "match_language": null,
       "notes": "Spreadsheet manipulation. Useful for any project that ingests/exports tabular data."
     },
     "docx": {
+      "category": "docs/office",
       "tags": ["has_user_input"],
       "default_for": [],
       "notes": "Word document processing. Fires for any project that generates formal documents."
     },
     "pdf": {
+      "category": "docs/office",
       "tags": ["has_user_input"],
       "default_for": [],
       "notes": "PDF generation/parsing. Broad applicability — don't over-tag."
     },
     "pptx": {
+      "category": "docs/office",
       "tags": ["has_user_input"],
       "default_for": [],
       "notes": "PowerPoint generation. Rare outside business/reporting tools."
     },
     "frontend-design": {
+      "category": "design/frontend",
       "tags": ["has_web", "has_ui", "serves_public"],
       "default_for": ["web-frontend", "web-fullstack", "cms-web"],
       "match_language": null,
       "notes": "Production-grade frontend interfaces. Essential for any UI work."
     },
     "brand-guidelines": {
+      "category": "design/frontend",
       "tags": ["has_ui", "has_web"],
       "default_for": ["web-frontend", "web-fullstack", "cms-web"],
       "notes": "Corporate brand consistency. Applies wherever a UI is shipped."
     },
     "canvas-design": {
+      "category": "design/visual",
       "tags": ["has_ui"],
       "default_for": ["web-frontend", "web-fullstack"],
       "notes": "Visual art generation. Optional unless project needs custom graphics."
     },
     "mcp-builder": {
+      "category": "meta/skill-authoring",
       "tags": ["has_api"],
       "default_for": ["backend-api", "cli-tool", "library"],
       "match_language": null,
       "notes": "MCP server implementation guidance. Language-agnostic (Python + TypeScript)."
     },
     "claude-api": {
+      "category": "meta/skill-authoring",
       "tags": ["has_api"],
       "boost_when": ["serves_traffic"],
       "default_for": ["backend-api", "data-ml", "cli-tool"],
       "notes": "Claude API integration patterns. Useful for any app that calls LLM APIs."
     },
     "webapp-testing": {
+      "category": "quality/testing",
       "tags": ["has_web", "has_ui"],
       "default_for": ["web-frontend", "web-fullstack", "cms-web"],
       "notes": "Playwright-based web app testing. Not needed for pure backend/CLI."
     },
     "web-artifacts-builder": {
+      "category": "design/frontend",
       "tags": ["has_web", "has_ui"],
       "default_for": ["web-frontend", "web-fullstack"],
       "notes": "HTML artifacts for Claude.ai. Web-frontend focused."
     },
     "theme-factory": {
+      "category": "design/frontend",
       "tags": ["has_web", "has_ui"],
       "default_for": ["web-frontend", "cms-web"],
       "notes": "CSS theme generation. Web-specific."
     },
     "algorithmic-art": {
+      "category": "design/visual",
       "tags": ["has_ui"],
       "default_for": [],
       "notes": "p5.js generative art. Niche — optional for most projects."
     },
     "skill-creator": {
+      "category": "meta/skill-authoring",
       "tags": [],
       "default_for": [],
       "notes": "Meta-skill for authoring new skills. Optional for everyone."
     },
     "slack-gif-creator": {
+      "category": "design/visual",
       "tags": [],
       "default_for": [],
       "notes": "Very specific niche. Not recommended by default."
     },
     "internal-comms": {
+      "category": "docs/prose",
       "tags": [],
       "default_for": [],
       "notes": "Business communications. Not engineering-relevant."
     },
     "doc-coauthoring": {
+      "category": "docs/prose",
       "tags": ["has_user_input"],
       "default_for": [],
       "notes": "Collaborative document editing. Niche."
     },
     "agent-browser": {
+      "category": "quality/testing",
       "tags": ["has_web"],
       "default_for": ["web-frontend", "web-fullstack"],
       "notes": "Browser automation for agents. Useful for web projects that need scraping/testing."
     },
 
     "bmad-code-review": {
+      "category": "quality/review",
       "tags": ["any"],
       "boost_when": ["has_ci"],
       "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
       "notes": "Adversarial code review with parallel layers (Blind Hunter, Edge Case Hunter, Acceptance Auditor). Universal value across all code-producing project types."
     },
     "bmad-review-edge-case-hunter": {
+      "category": "quality/review",
       "tags": ["any"],
       "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
       "notes": "Exhaustive edge case analysis of code, specs, and diffs. Method-driven boundary walking. Pairs well with testing-qa for comprehensive coverage."
     },
     "bmad-review-adversarial-general": {
+      "category": "quality/review",
       "tags": ["any"],
       "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile", "cms-web", "cli-tool", "library"],
       "notes": "Cynical review producing findings reports. Useful for any critical review session — code, design, specs, plans."
     },
     "bmad-qa-generate-e2e-tests": {
+      "category": "quality/testing",
       "tags": ["has_web", "has_api", "has_mobile_ui"],
       "boost_when": ["has_ci", "serves_public"],
       "default_for": ["web-frontend", "web-fullstack", "backend-api", "mobile"],
       "notes": "Generates end-to-end automated tests for existing features. Needs a UI or API surface to test; CLI tools and libraries get marginal value."
     },
     "bmad-quick-dev": {
+      "category": "planning/methodology",
       "tags": [],
       "default_for": [],
       "notes": "General-purpose code-writing skill. Too broad to recommend by default — heuristic keeps it in optional unless the user explicitly asks."
     },
     "bmad-create-architecture": {
+      "category": "planning/architecture",
       "tags": ["has_api", "has_db", "serves_traffic"],
       "default_for": ["backend-api", "web-fullstack", "mobile"],
       "notes": "Technical architecture design. High-value for projects with real backend complexity; trivial for pure frontend or CLI tools."
     },
     "bmad-create-prd": {
+      "category": "planning/requirements",
       "tags": [],
       "default_for": [],
       "notes": "Create a product requirements document. Pre-dev phase — no characteristic-based signal for project match. User invokes explicitly during planning."
     },
     "bmad-edit-prd": {
+      "category": "planning/requirements",
       "tags": [],
       "default_for": [],
       "notes": "Edit an existing PRD. Same pre-dev rationale as bmad-create-prd."
     },
     "bmad-brainstorming": {
+      "category": "planning/methodology",
       "tags": [],
       "default_for": [],
       "notes": "Interactive brainstorming sessions. Meta-skill, user-invoked. No automatic recommendation."
     },
     "bmad-help": {
+      "category": "planning/methodology",
       "tags": [],
       "default_for": [],
       "notes": "BMAD navigation helper. Only useful inside a BMAD methodology workflow — not generally applicable."
     },
     "bmad-distillator": {
+      "category": "docs/prose",
       "tags": [],
       "default_for": [],
       "notes": "Lossless document compression. Niche utility — user-invoked on specific documents."
     },
     "bmad-editorial-review-prose": {
+      "category": "docs/prose",
       "tags": [],
       "default_for": ["library"],
       "notes": "Copy-editor for prose communication issues. Most applicable to library/docs projects that ship extensive documentation."
     },
     "bmad-editorial-review-structure": {
+      "category": "docs/prose",
       "tags": [],
       "default_for": ["library"],
       "notes": "Structural editor for reorganization and cuts. Same prose rationale."

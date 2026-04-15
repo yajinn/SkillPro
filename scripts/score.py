@@ -13,6 +13,16 @@ import os
 import re
 import sys
 
+# Presentation-layer clustering — imported lazily so score.py stays
+# usable as a pure scoring engine if clustering is unavailable.
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+if _SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPT_DIR)
+try:
+    from clustering import present_grouped  # noqa: E402
+except ImportError:
+    present_grouped = None  # type: ignore
+
 def load_json(path):
     with open(path) as f:
         return json.load(f)
@@ -128,12 +138,13 @@ def main():
         entry = {
             "id": skill["id"],
             "name": skill["name"],
-            "category": skill.get("category", ""),
+            "category": skill.get("category", None),
             "description": skill["description"],
             "score": score,
             "relevance": category,
             "plugin": skill.get("plugin", ""),
-            "has_lang_refs": skill.get("has_lang_refs", False)
+            "has_lang_refs": skill.get("has_lang_refs", False),
+            "popularity": skill.get("popularity", 0),
         }
 
         results[category].append(entry)
@@ -158,6 +169,16 @@ def main():
         },
         "skills": results
     }
+
+    # Presentation-layer grouping: cluster by category + prefix, cap per
+    # category, tiebreak by popularity. Consumed by /skillforge UI.
+    if present_grouped is not None:
+        output["grouped"] = {
+            "recommended": present_grouped(results["recommended"]),
+            "optional": present_grouped(results["optional"]),
+            # not_relevant is intentionally NOT grouped — it's the "hidden"
+            # bucket and the UI collapses it entirely. Grouping wastes CPU.
+        }
 
     # Write to file
     rec_path = os.path.join(project_dir, ".claude", "skill-recommendations.json")

@@ -139,6 +139,13 @@ class SitemapAggregatorAdapter:
 
         entries: List[SkillEntry] = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=SUBPROBE_WORKERS) as pool:
-            for result in pool.map(probe_repo, top_repos):
+            for (owner, repo), result in zip(top_repos, pool.map(probe_repo, top_repos)):
+                # Tag each skill with the popularity signal: how many
+                # skill URLs this repo contributed to the sitemap. This
+                # becomes a tiebreaker when multiple skills have the
+                # same score (bigger repo = more endorsed).
+                repo_popularity = pairs[(owner, repo)]
+                for entry in result:
+                    entry.popularity = repo_popularity
                 entries.extend(result)
         return entries

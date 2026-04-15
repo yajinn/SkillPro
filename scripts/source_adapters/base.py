@@ -23,6 +23,16 @@ class SkillEntry:
     install_url: str
     version: Optional[str]
     commit_sha: Optional[str]
+    # Presentation-layer fields (not used for primary scoring):
+    #   category: single-level taxonomy for grouping (e.g. "language/python",
+    #     "framework/flutter", "quality/review"). Populated by heuristic
+    #     inference from description, optionally overridden by enrichment.
+    #   popularity: tiebreaker signal. For skills discovered via sitemap-
+    #     aggregator, this is the skill count of the host repo in the
+    #     aggregator sitemap (higher = more skills = more "endorsed").
+    #     Other sources default to 0.
+    category: Optional[str] = None
+    popularity: int = 0
 
     def to_dict(self) -> dict:
         return asdict(self)

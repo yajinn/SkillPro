@@ -108,6 +108,62 @@ LANGUAGE_KEYWORDS: List[Tuple[str, List[str]]] = [
 ]
 
 
+# Category taxonomy — flat, single-level. Order matters: the first
+# matching category wins. More specific categories precede general ones.
+# Used by render-layer grouping (clustering.py), never affects scoring.
+CATEGORY_KEYWORDS: List[Tuple[str, List[str]]] = [
+    ("language/python",        [r"\bpep.?8\b", r"\bpytest\b", r"\bpython\s+best\b", r"\bmodern\s+python\b", r"\basyncio\b"]),
+    ("language/dart",          [r"\bdart\s+code\b", r"\bdart\s+best\b", r"\beffective\s+dart\b"]),
+    ("language/go",            [r"\bgolang\b", r"\beffective\s+go\b", r"\bgoroutine\b"]),
+    ("language/rust",          [r"\bcargo\b", r"\bclippy\b", r"\brust\s+ownership\b"]),
+    ("language/ruby",          [r"\brubocop\b", r"\bruby\s+best\b"]),
+    ("language/php",           [r"\bpsr-?12\b", r"\bphp\s+best\b", r"\bphpstan\b"]),
+    ("language/javascript",    [r"\bnode\.?js\b", r"\bjs\s+best\b"]),
+    ("language/typescript",    [r"\btsconfig\b", r"\btypescript\s+strict\b"]),
+    ("framework/flutter",      [r"\bflutter\s+widget\b", r"\bwidget\s+tree\b", r"\bflutter\s+state\b"]),
+    ("framework/react-native", [r"\breact\s+native\b", r"\bexpo\b", r"\bflatlist\b"]),
+    ("framework/nextjs",       [r"\bnext\.?js\b", r"\bapp\s+router\b", r"\brsc\b"]),
+    ("framework/fastapi",      [r"\bfastapi\b"]),
+    ("framework/django",       [r"\bdjango\b", r"\bdrf\b"]),
+    ("framework/wordpress",    [r"\bwordpress\b", r"\bwp-"]),
+    ("framework/laravel",      [r"\blaravel\b", r"\beloquent\b"]),
+    ("framework/rails",        [r"\brails\b", r"\bactiverecord\b"]),
+    ("quality/review",         [r"\bcode\s+review\b", r"\badversarial\s+review\b", r"\bedge\s+case\s+hunt\b", r"\bcynical\s+review\b"]),
+    ("quality/testing",        [r"\bfuzzer?\b", r"\be2e\s+test\b", r"\bunit\s+test\b", r"\bintegration\s+test\b"]),
+    ("quality/lint",           [r"\blinter\b", r"\bformatter\b", r"\bstyle\s+check\b"]),
+    ("security",               [r"\bsecurity\s+audit\b", r"\bvulnerability\b", r"\bencrypt", r"\bcrypto", r"\bauth\s+best\b", r"\bsecret\s+detect"]),
+    ("planning/architecture",  [r"\barchitecture\b", r"\bsystem\s+design\b", r"\bsolution\s+design\b"]),
+    ("planning/requirements",  [r"\bprd\b", r"\bproduct\s+requirement\b", r"\bproduct\s+brief\b"]),
+    ("planning/methodology",   [r"\bbrainstorm", r"\bideation\b", r"\bsprint\b", r"\bretrospective\b", r"\bmethodology\b"]),
+    ("docs/office",            [r"\bspreadsheet\b", r"\bxlsx?\b", r"\bexcel\b", r"\bword\s+doc", r"\bdocx?\b", r"\bpowerpoint\b", r"\bpptx\b", r"\bpdf\b"]),
+    ("docs/prose",             [r"\bcopy.?edit", r"\bprose\b", r"\beditorial\b"]),
+    ("design/frontend",        [r"\bfrontend\s+design\b", r"\bui\s+design\b", r"\bcomponent\s+design\b", r"\bbrand\s+guideline\b"]),
+    ("design/visual",          [r"\bvisual\s+art\b", r"\bcanvas\s+design\b", r"\bgenerative\s+art\b", r"\balgorithmic\s+art\b"]),
+    ("mobile/deploy",          [r"\bapp\s+store\b", r"\bplay\s+store\b", r"\bios\s+deploy", r"\bota\b"]),
+    ("mobile/simulator",       [r"\bsimulator\b", r"\bemulator\b"]),
+    ("infrastructure/docker",  [r"\bdocker\b", r"\bcontainer\b", r"\bkubernetes\b"]),
+    ("infrastructure/devcontainer", [r"\bdevcontainer\b"]),
+    ("infrastructure/ci",      [r"\bci/?cd\b", r"\bgithub\s+actions\b", r"\bpipeline\b"]),
+    ("operations/observability", [r"\bobservab", r"\btracing\b", r"\bmetrics\b", r"\bstructured\s+log"]),
+    ("operations/crash",       [r"\bcrash\s+report", r"\bsentry\b", r"\bcrashlytics\b", r"\bsymbolication\b"]),
+    ("database",               [r"\bdatabase\b", r"\bsql\b", r"\bpostgres\b", r"\bfirestore\b", r"\bmongo\b"]),
+    ("meta/skill-authoring",   [r"\bskill\s+creator\b", r"\bmcp\s+build", r"\bclaude\s+api\b"]),
+]
+
+
+def infer_category(description: str, name: str = "") -> Optional[str]:
+    """Pick a single category for a skill from its description + name.
+
+    Returns None if nothing matched — caller may set it to "general"
+    or leave it unassigned for the "other" bucket in the UI.
+    """
+    text = (description + " " + name).lower()
+    for category, patterns in CATEGORY_KEYWORDS:
+        if any(re.search(p, text) for p in patterns):
+            return category
+    return None
+
+
 def infer_tags(description: str, name: str = "") -> dict:
     """From a SKILL.md description, infer scoring metadata.
 
@@ -233,6 +289,8 @@ def apply_enrichment(entry: SkillEntry) -> SkillEntry:
         install_url=entry.install_url,
         version=entry.version,
         commit_sha=entry.commit_sha,
+        category=overlay["category"] if "category" in overlay and overlay["category"] is not None else entry.category,
+        popularity=entry.popularity,
     )
 
 
@@ -469,6 +527,8 @@ class MarketplaceAdapter:
             install_url=skill["install_url"],
             version=skill.get("version"),
             commit_sha=skill.get("commit_sha"),
+            category=skill.get("category"),
+            popularity=skill.get("popularity", 0),
         )
 
     @staticmethod
@@ -494,6 +554,9 @@ class MarketplaceAdapter:
             return None
 
         inferred = infer_tags(fm.get("description", ""), fm.get("name", ""))
+        inferred_category = infer_category(
+            fm.get("description", ""), fm.get("name", "")
+        )
         skill_id = fm.get("name", path.split("/")[-1])
         entry = SkillEntry(
             id=skill_id,
@@ -509,6 +572,8 @@ class MarketplaceAdapter:
             install_url=skill_md_url,
             version=plugin.get("version"),
             commit_sha=None,
+            category=inferred_category,
+            popularity=0,
         )
         return apply_enrichment(entry)
 

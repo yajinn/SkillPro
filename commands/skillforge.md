@@ -71,23 +71,45 @@ Selections (persistent across sessions):
    - `status` / (empty) → proceed to step 5.
    - `setup` → proceed to step 5 with the explicit invitation "Which skills do you want? Reply `/skillforge add <id>` for each."
 
-5. **Render recommendations.** Group as:
+5. **Render recommendations using the grouped structure.**
+   The scoring engine emits `grouped.recommended` and `grouped.optional`
+   with categories, clustered canonicals, and variant counts. Prefer
+   this structure over the flat `skills.recommended` list — it collapses
+   duplicates and groups by topic so the user isn't overwhelmed.
 
-```
-### ✅ Recommended (N)
-| Skill | Score | Source | Description |
-|-------|-------|--------|-------------|
+   Layout per category:
 
-### ⚡ Optional (N)
-...
+   ```
+   ### ✅ Recommended ({total_shown} shown, {total_hidden} collapsed in {N} categories)
 
-<details>
-<summary>💤 Not relevant (N) — click to expand</summary>
-...
-</details>
-```
+   #### 🔧 language/python ({total_canonicals} skills, top 3)
+   | Skill | Score | Description |
+   |-------|-------|-------------|
+   | ✓ python-pro        | 100 | Advanced Python patterns |
+   | modern-python       | 95  | Python best practices |
+   | temporal-python-testing | 100 | Testing temporal apps |
+   _2 more in this category — use /skillforge show language/python_
 
-Sort within each group by score descending. Prefix installed skill ids with ✓. If a skill carries `audit.status == "failed"`, prefix it with ⚠️ and say so in the description.
+   #### 🚀 framework/fastapi (3 skills, top 2)
+   | Skill | Score | Description |
+   | fastapi-expert       | 100 | +1 variant (fastapi-templates) |
+   ...
+   ```
+
+   Rendering rules:
+   - Show **top 3 canonicals per category** (from `canonicals[]`).
+   - If a canonical has `variant_count > 0`, append `+N variant(s)` to
+     the description column and list the first 1-3 variant ids in a
+     footnote like `fastapi-templates, fastapi-best-practices`.
+   - Categories with `total_canonicals > shown count` get a
+     `_M more — /skillforge show <category>_` footer line.
+   - The `other` category (heuristic couldn't classify) is always last.
+   - Prefix installed skill ids with `✓` (check `selections.json`).
+   - If any skill has `audit.status == "failed"`, prefix it with `⚠️`.
+
+   Fall back to the flat `skills.recommended` list only if `grouped`
+   is missing from the score output (shouldn't happen in current
+   version, but defensive).
 
 6. **Footer lines:**
    - "Index: N skills from M sources, fetched <relative time> ago."
