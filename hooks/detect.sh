@@ -241,6 +241,52 @@ fi
 LANGUAGE="unknown"
 LANGUAGE_VERSION=""
 
+# Pre-pass: strong JS/TS framework dependencies dominate over ancillary
+# manifests at root. The archetypal case is React Native — every RN app
+# ships a Gemfile at root for the CocoaPods bundler toolchain, which
+# would otherwise trigger the `Ruby` branch below and completely mask
+# the real language. Same story for Python projects with a root
+# package.json used only for linting/tooling, or Go CLIs with a
+# sidecar package.json for a docs site.
+#
+# If package.json lists any of these top-line frontend/full-stack
+# dependencies, or if the repo ships a framework config file that
+# only makes sense in JS/TS land, we lock LANGUAGE to javascript or
+# typescript here and skip the cascade entirely.
+if [ -f "$PROJECT_DIR/package.json" ] && ( \
+     pkg_has '"react-native"' || \
+     pkg_has '"expo"' || \
+     pkg_has '"next"' || \
+     pkg_has '"nuxt"' || \
+     pkg_has '"vue"' || \
+     pkg_has '"@angular/core"' || \
+     pkg_has '"astro"' || \
+     pkg_has '"@remix-run"' || \
+     pkg_has '"@sveltejs/kit"' || \
+     pkg_has '"svelte"' || \
+     pkg_has '"@nestjs/core"' || \
+     pkg_has '"electron"' || \
+     pkg_has '"tauri"' || \
+     pkg_has '"vite"' \
+   ) || \
+   any_file_exists "react-native.config.js" \
+                   "next.config.js" "next.config.ts" "next.config.mjs" \
+                   "nuxt.config.js" "nuxt.config.ts" \
+                   "astro.config.mjs" "astro.config.ts" \
+                   "remix.config.js" "remix.config.ts" \
+                   "svelte.config.js" "svelte.config.ts" \
+                   "angular.json" "vue.config.js"; then
+  if file_exists "tsconfig.json"; then
+    LANGUAGE="typescript"
+  else
+    LANGUAGE="javascript"
+  fi
+  LANGUAGE_VERSION=$(node -v 2>/dev/null | tr -d 'v' || echo "")
+fi
+
+# Only run the manifest cascade if the pre-pass didn't lock a language.
+if [ "$LANGUAGE" = "unknown" ]; then
+
 # PHP
 if any_file_exists "composer.json" "index.php" "wp-config.php" "artisan"; then
   LANGUAGE="php"
@@ -294,6 +340,8 @@ elif file_exists "package.json"; then
 elif file_exists "pubspec.yaml"; then
   LANGUAGE="dart"
 fi
+
+fi  # end of `if [ "$LANGUAGE" = "unknown" ]` guard wrapping the cascade
 
 # TypeScript override: if tsconfig exists alongside any language
 if [ "$LANGUAGE" != "typescript" ] && file_exists "tsconfig.json"; then
