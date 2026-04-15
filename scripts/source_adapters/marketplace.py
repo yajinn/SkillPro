@@ -111,8 +111,66 @@ LANGUAGE_KEYWORDS: List[Tuple[str, List[str]]] = [
 # Category taxonomy — flat, single-level. Order matters: the first
 # matching category wins. More specific categories precede general ones.
 # Used by render-layer grouping (clustering.py), never affects scoring.
+#
+# Ordering strategy:
+#   1. ML/AI-specific first (most specific, easy to identify by brand)
+#   2. Cloud platforms (brand-specific keywords)
+#   3. Infrastructure tooling
+#   4. Integration/messaging
+#   5. Language-specific conventions
+#   6. Framework-specific conventions
+#   7. Quality/testing/review
+#   8. Security, database, operations
+#   9. Planning/methodology/docs/design
+#  10. Meta (catch-all for skill-authoring tooling)
 CATEGORY_KEYWORDS: List[Tuple[str, List[str]]] = [
-    ("language/python",        [r"\bpep.?8\b", r"\bpytest\b", r"\bpython\s+best\b", r"\bmodern\s+python\b", r"\basyncio\b"]),
+    # --- Vector databases (more specific than generic DB or LLM) ---
+    ("database/vector",        [r"\bpinecone\b", r"\bweaviate\b", r"\bqdrant\b", r"\bchroma\s+db\b",
+                                r"\bvector\s+(?:db|database|search|store)\b"]),
+    # --- Data/ML specific (brand-first) ---
+    ("data-ml/observability",  [r"\barize\b", r"\bweights\s+and\s+biases\b", r"\bwandb\b",
+                                r"\bmlflow\b", r"\bexperiment\s+track", r"\bllm\s+trace",
+                                r"\bmodel\s+observab", r"\bml\s+monitor",
+                                r"\bprediction\s+log", r"\btracing\s+(?:for\s+)?llm",
+                                r"\bml\s+experiment"]),
+    ("data-ml/llm",            [r"\blangchain\b", r"\bllamaindex\b", r"\brag\s+pipeline\b",
+                                r"\brag\b", r"\bembedding",
+                                r"\bprompt\s+engineer", r"\bsemantic\s+search\b",
+                                r"\bllm\s+(?:agent|chain|app)\b", r"\bopenai\s+sdk\b",
+                                r"\banthropic\s+sdk\b"]),
+    ("data-ml/pipeline",       [r"\betl\s+pipeline", r"\betl\b", r"\bairflow\b",
+                                r"\bdagster\b", r"\bprefect\b", r"\bdata\s+ingestion",
+                                r"\bdata\s+pipeline"]),
+    ("data-ml/visualization",  [r"\bd3\.?js\b", r"\bplotly\b", r"\binteractive\s+(?:chart|graph|viz)",
+                                r"\bdata\s+viz", r"\bdataviz\b", r"\bmatplotlib\b",
+                                r"\bvisuali[sz]ation", r"\bgraph(?:s|ing)\b"]),
+    ("data-ml/training",       [r"\bmodel\s+training\b", r"\bfine.?tun", r"\bneural\s+network\b",
+                                r"\bdataset\s+prep", r"\bhugging\s*face\b"]),
+    # --- Cloud platforms ---
+    ("cloud/aws",              [r"\baws\b", r"\blambda\s+function\b", r"\bs3\s+bucket\b",
+                                r"\bcloudformation\b", r"\bamazon\s+web\s+service"]),
+    ("cloud/azure",            [r"\bazure\b", r"\bapp\s+service\b", r"\bcosmos\s*db\b",
+                                r"\bmicrosoft\s+cloud\b"]),
+    ("cloud/gcp",              [r"\bgoogle\s+cloud\b", r"\bgcp\b", r"\bcloud\s+run\b",
+                                r"\bbigquery\b", r"\bfirebase\s+cloud\b"]),
+    # --- Infrastructure / DevOps ---
+    ("infrastructure/iac",     [r"\bterraform\b", r"\bpulumi\b", r"\bcdk\b",
+                                r"\binfrastructure\s+as\s+code\b", r"\biac\b", r"\bansible\b"]),
+    ("infrastructure/docker",  [r"\bdocker\b", r"\bcontainer\b", r"\bkubernetes\b", r"\bk8s\b"]),
+    ("infrastructure/devcontainer", [r"\bdevcontainer\b"]),
+    ("infrastructure/ci",      [r"\bci/?cd\b", r"\bgithub\s+actions\b", r"\bpipeline\b",
+                                r"\bworkflow\b", r"\bjenkins\b"]),
+    # --- Integration / messaging ---
+    ("integration/messaging",  [r"\bslack\s+(?:bot|integration|webhook|gif)\b",
+                                r"\bdiscord\s+bot\b", r"\bteams\s+(?:bot|integration)\b",
+                                r"\btelegram\s+bot\b", r"\bemail\s+(?:send|integration)",
+                                r"\bwebhook\s+integration"]),
+    # --- Database (general, traditional SQL/NoSQL) ---
+    ("database",               [r"\bdatabase\b", r"\bsql\b", r"\bpostgres\b", r"\bmysql\b",
+                                r"\bfirestore\b", r"\bmongo\b", r"\bschema\s+migration\b"]),
+    # --- Language-specific conventions ---
+    ("language/python",        [r"\bpep.?8\b", r"\bpytest\b", r"\bpython\s+best\b",
+                                r"\bmodern\s+python\b", r"\basyncio\b", r"\btype\s+hints\b"]),
     ("language/dart",          [r"\bdart\s+code\b", r"\bdart\s+best\b", r"\beffective\s+dart\b"]),
     ("language/go",            [r"\bgolang\b", r"\beffective\s+go\b", r"\bgoroutine\b"]),
     ("language/rust",          [r"\bcargo\b", r"\bclippy\b", r"\brust\s+ownership\b"]),
@@ -120,6 +178,7 @@ CATEGORY_KEYWORDS: List[Tuple[str, List[str]]] = [
     ("language/php",           [r"\bpsr-?12\b", r"\bphp\s+best\b", r"\bphpstan\b"]),
     ("language/javascript",    [r"\bnode\.?js\b", r"\bjs\s+best\b"]),
     ("language/typescript",    [r"\btsconfig\b", r"\btypescript\s+strict\b"]),
+    # --- Framework-specific conventions ---
     ("framework/flutter",      [r"\bflutter\s+widget\b", r"\bwidget\s+tree\b", r"\bflutter\s+state\b"]),
     ("framework/react-native", [r"\breact\s+native\b", r"\bexpo\b", r"\bflatlist\b"]),
     ("framework/nextjs",       [r"\bnext\.?js\b", r"\bapp\s+router\b", r"\brsc\b"]),
@@ -128,39 +187,87 @@ CATEGORY_KEYWORDS: List[Tuple[str, List[str]]] = [
     ("framework/wordpress",    [r"\bwordpress\b", r"\bwp-"]),
     ("framework/laravel",      [r"\blaravel\b", r"\beloquent\b"]),
     ("framework/rails",        [r"\brails\b", r"\bactiverecord\b"]),
-    ("quality/review",         [r"\bcode\s+review\b", r"\badversarial\s+review\b", r"\bedge\s+case\s+hunt\b", r"\bcynical\s+review\b"]),
-    ("quality/testing",        [r"\bfuzzer?\b", r"\be2e\s+test\b", r"\bunit\s+test\b", r"\bintegration\s+test\b"]),
+    # --- Quality gates ---
+    ("quality/review",         [r"\bcode\s+review\b", r"\badversarial\s+review\b",
+                                r"\bedge\s+case\s+hunt\b", r"\bcynical\s+review\b"]),
+    ("quality/testing",        [r"\bfuzz(?:er|ing)?\b", r"\be2e\s+test\b", r"\bunit\s+test\b",
+                                r"\bintegration\s+test\b", r"\bplaywright\b"]),
     ("quality/lint",           [r"\blinter\b", r"\bformatter\b", r"\bstyle\s+check\b"]),
-    ("security",               [r"\bsecurity\s+audit\b", r"\bvulnerability\b", r"\bencrypt", r"\bcrypto", r"\bauth\s+best\b", r"\bsecret\s+detect"]),
+    # --- Security / operations ---
+    ("security",               [r"\bsecurity\s+audit\b", r"\bvulnerability\b", r"\bencrypt",
+                                r"\bcrypto", r"\bauth\s+best\b", r"\bsecret\s+detect"]),
+    ("operations/observability", [r"\bobservab", r"\bstructured\s+log", r"\bmetric",
+                                  r"\bgrafana\b", r"\bprometheus\b", r"\bdatadog\b"]),
+    ("operations/crash",       [r"\bcrash\s+report", r"\bsentry\b", r"\bcrashlytics\b",
+                                r"\bsymbolication\b"]),
+    # --- Planning / methodology ---
     ("planning/architecture",  [r"\barchitecture\b", r"\bsystem\s+design\b", r"\bsolution\s+design\b"]),
     ("planning/requirements",  [r"\bprd\b", r"\bproduct\s+requirement\b", r"\bproduct\s+brief\b"]),
-    ("planning/methodology",   [r"\bbrainstorm", r"\bideation\b", r"\bsprint\b", r"\bretrospective\b", r"\bmethodology\b"]),
-    ("docs/office",            [r"\bspreadsheet\b", r"\bxlsx?\b", r"\bexcel\b", r"\bword\s+doc", r"\bdocx?\b", r"\bpowerpoint\b", r"\bpptx\b", r"\bpdf\b"]),
-    ("docs/prose",             [r"\bcopy.?edit", r"\bprose\b", r"\beditorial\b"]),
-    ("design/frontend",        [r"\bfrontend\s+design\b", r"\bui\s+design\b", r"\bcomponent\s+design\b", r"\bbrand\s+guideline\b"]),
-    ("design/visual",          [r"\bvisual\s+art\b", r"\bcanvas\s+design\b", r"\bgenerative\s+art\b", r"\balgorithmic\s+art\b"]),
+    ("planning/methodology",   [r"\bbrainstorm", r"\bideation\b", r"\bsprint\b",
+                                r"\bretrospective\b", r"\bmethodology\b"]),
+    # --- Docs / design ---
+    ("docs/office",            [r"\bspreadsheet\b", r"\bxlsx?\b", r"\bexcel\b", r"\bword\s+doc",
+                                r"\bdocx?\b", r"\bpowerpoint\b", r"\bpptx\b", r"\bpdf\b"]),
+    ("docs/prose",             [r"\bcopy.?edit", r"\bprose\b", r"\beditorial\b",
+                                r"\bdocstring", r"\bapi\s+documentation", r"\btechnical\s+writing"]),
+    ("design/frontend",        [r"\bfrontend\s+design\b", r"\bui\s+design\b",
+                                r"\bcomponent\s+design\b", r"\bbrand\s+guideline\b"]),
+    ("design/visual",          [r"\bvisual\s+art\b", r"\bcanvas\s+design\b",
+                                r"\bgenerative\s+art\b", r"\balgorithmic\s+art\b"]),
+    # --- Mobile platform tooling ---
     ("mobile/deploy",          [r"\bapp\s+store\b", r"\bplay\s+store\b", r"\bios\s+deploy", r"\bota\b"]),
     ("mobile/simulator",       [r"\bsimulator\b", r"\bemulator\b"]),
-    ("infrastructure/docker",  [r"\bdocker\b", r"\bcontainer\b", r"\bkubernetes\b"]),
-    ("infrastructure/devcontainer", [r"\bdevcontainer\b"]),
-    ("infrastructure/ci",      [r"\bci/?cd\b", r"\bgithub\s+actions\b", r"\bpipeline\b"]),
-    ("operations/observability", [r"\bobservab", r"\btracing\b", r"\bmetrics\b", r"\bstructured\s+log"]),
-    ("operations/crash",       [r"\bcrash\s+report", r"\bsentry\b", r"\bcrashlytics\b", r"\bsymbolication\b"]),
-    ("database",               [r"\bdatabase\b", r"\bsql\b", r"\bpostgres\b", r"\bfirestore\b", r"\bmongo\b"]),
+    # --- Meta ---
     ("meta/skill-authoring",   [r"\bskill\s+creator\b", r"\bmcp\s+build", r"\bclaude\s+api\b"]),
 ]
 
 
-def infer_category(description: str, name: str = "") -> Optional[str]:
-    """Pick a single category for a skill from its description + name.
+# Secondary inference: when description keyword matching fails, fall
+# back to the skill's tags/default_for. Map from "dominant signal" to
+# a general category bucket. Order matters — first match wins.
+#
+# Format: (category, matcher) where matcher is a callable taking
+# (tags_set, default_for_set) and returning bool.
+def _tag_fallback_matchers():
+    return [
+        ("data-ml/general",      lambda t, d: "data_pipeline" in t or "data-ml" in d),
+        ("cli/general",          lambda t, d: "cli_only" in t or "cli-tool" in d),
+        ("mobile/general",       lambda t, d: "has_mobile_ui" in t or "mobile" in d),
+        ("infrastructure/docker", lambda t, d: "has_docker" in t and "serves_traffic" in t),
+        ("infrastructure/ci",    lambda t, d: "has_ci" in t and len(t) <= 2),
+        ("framework/web-general", lambda t, d: "has_web" in t and "has_ui" in t),
+        ("backend/general",      lambda t, d: "has_api" in t or "backend-api" in d),
+        ("library/general",      lambda t, d: "is_library" in t or "library" in d),
+    ]
 
-    Returns None if nothing matched — caller may set it to "general"
-    or leave it unassigned for the "other" bucket in the UI.
+
+def infer_category(
+    description: str,
+    name: str = "",
+    tags: Optional[List[str]] = None,
+    default_for: Optional[List[str]] = None,
+) -> Optional[str]:
+    """Pick a single category for a skill.
+
+    Primary: description + name keyword match against CATEGORY_KEYWORDS.
+    Secondary: tag-based fallback using skill characteristics.
+    Returns None if no match anywhere (caller → "other" bucket).
     """
     text = (description + " " + name).lower()
     for category, patterns in CATEGORY_KEYWORDS:
         if any(re.search(p, text) for p in patterns):
             return category
+
+    # Secondary: tag-based fallback
+    if tags is not None or default_for is not None:
+        tag_set = set(tags or [])
+        default_set = set(default_for or [])
+        for category, matcher in _tag_fallback_matchers():
+            try:
+                if matcher(tag_set, default_set):
+                    return category
+            except Exception:
+                continue
     return None
 
 
@@ -555,7 +662,10 @@ class MarketplaceAdapter:
 
         inferred = infer_tags(fm.get("description", ""), fm.get("name", ""))
         inferred_category = infer_category(
-            fm.get("description", ""), fm.get("name", "")
+            fm.get("description", ""),
+            fm.get("name", ""),
+            tags=inferred["tags"],
+            default_for=inferred["default_for"],
         )
         skill_id = fm.get("name", path.split("/")[-1])
         entry = SkillEntry(
