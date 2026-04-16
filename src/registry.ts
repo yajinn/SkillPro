@@ -18,6 +18,8 @@ import type { StackDefinition } from './detect/stack.js';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
+export type Platform = 'web' | 'mobile' | 'desktop' | 'both';
+
 export interface RegistrySkill {
   name: string;
   description: string;
@@ -28,6 +30,7 @@ export interface RegistrySkill {
   weekly_installs?: number;
   github_stars?: number;
   stacks?: string[];
+  platform?: Platform;
 }
 
 export interface MatchedSkill extends RegistrySkill {
@@ -160,6 +163,53 @@ function buildMatchSet(detectedStackIds: string[], language: string): Set<string
   return set;
 }
 
+/**
+ * Determine the project's platform from detected stacks.
+ * Used as a HARD GATE — mobile projects never see web-only skills.
+ */
+const MOBILE_STACKS = new Set(['react-native', 'expo', 'flutter']);
+const DESKTOP_STACKS = new Set(['electron', 'tauri']);
+const WEB_STACKS = new Set([
+  'nextjs', 'nuxt', 'sveltekit', 'remix', 'gatsby', 'astro',
+  'react', 'vue', 'angular', 'svelte',
+  'vercel', 'cloudflare-workers',
+  'shadcn', 'tailwindcss',
+]);
+
+function detectProjectPlatform(stackIds: string[]): Platform {
+  for (const id of stackIds) {
+    if (MOBILE_STACKS.has(id)) return 'mobile';
+    if (DESKTOP_STACKS.has(id)) return 'desktop';
+  }
+  for (const id of stackIds) {
+    if (WEB_STACKS.has(id)) return 'web';
+  }
+  return 'both'; // Unknown / backend / CLI — show everything
+}
+
+/**
+ * Is this skill compatible with the project's platform?
+ * - Mobile projects: only mobile or cross-platform skills
+ * - Desktop projects: only desktop or cross-platform skills
+ * - Web projects: only web or cross-platform skills
+ * - Unknown/backend: everything is fair game
+ */
+function isPlatformCompatible(
+  skillPlatform: Platform | undefined,
+  projectPlatform: Platform,
+): boolean {
+  const sp = skillPlatform ?? 'both';
+
+  // Cross-platform skills match everywhere
+  if (sp === 'both') return true;
+
+  // Unknown project = show everything
+  if (projectPlatform === 'both') return true;
+
+  // Exact match
+  return sp === projectPlatform;
+}
+
 export interface MatchResult {
   /** Top skills (max 20), deduped, sorted by priority */
   recommended: MatchedSkill[];
@@ -175,10 +225,14 @@ export function matchSkills(
 ): MatchResult {
   const registry = loadRegistry();
   const matchSet = buildMatchSet(detectedStackIds, language);
+  const projectPlatform = detectProjectPlatform(detectedStackIds);
   const raw: MatchedSkill[] = [];
 
-  // Phase 1: Find all matching skills
+  // Phase 1: Find all matching skills (stack match + platform compatible)
   for (const [skillId, skill] of Object.entries(registry.skills)) {
+    // HARD GATE: platform compatibility
+    if (!isPlatformCompatible(skill.platform, projectPlatform)) continue;
+
     const skillStacks = skill.stacks ?? ['_universal'];
 
     let bestMatch: string | null = null;
