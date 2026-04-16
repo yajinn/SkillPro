@@ -1,3 +1,4 @@
+import { emitKeypressEvents } from 'node:readline';
 import type { ScoredSkill } from '../types.js';
 import { bold, orange, dim, gray, yellow, symbols } from './colors.js';
 import { clusterSkills } from '../score/clustering.js';
@@ -174,30 +175,47 @@ export async function multiSelect(
     function cleanup(): void {
       stdin.setRawMode(false);
       stdin.pause();
-      stdin.removeAllListeners('data');
+      stdin.removeAllListeners('keypress');
       process.stderr.write('\x1b[?25h'); // show cursor
     }
 
     draw();
 
-    stdin.on('data', (key: string) => {
-      // Handle all common arrow-key escape sequences:
-      //   \x1b[A/B — ANSI/xterm
-      //   \x1bOA/OB — VT100 application cursor mode
-      //   k/j — vim-style
-      switch (key) {
-        case '\x1b[A':
-        case '\x1bOA':
+    // Use Node's built-in keypress parser — handles fragmented escape
+    // sequences (\x1b + [ + A arriving separately) and normalizes key
+    // names across terminals. Far more reliable than raw data matching.
+    emitKeypressEvents(stdin);
+
+    interface Key {
+      sequence?: string;
+      name?: string;
+      ctrl?: boolean;
+      meta?: boolean;
+      shift?: boolean;
+    }
+
+    const onKeypress = (_str: string | undefined, key: Key): void => {
+      if (!key) return;
+      const name = key.name ?? '';
+
+      // Ctrl+C / Ctrl+D
+      if (key.ctrl && (name === 'c' || name === 'd')) {
+        cleanup();
+        stdin.removeListener('keypress', onKeypress);
+        resolve([]);
+        return;
+      }
+
+      switch (name) {
+        case 'up':
         case 'k':
           moveCursor(-1);
           break;
-        case '\x1b[B':
-        case '\x1bOB':
+        case 'down':
         case 'j':
           moveCursor(1);
           break;
-        case ' ': {
-          // toggle
+        case 'space': {
           const item = state.items[state.cursor];
           if (item && !item.isGroupHeader) {
             item.checked = !item.checked;
@@ -205,35 +223,41 @@ export async function multiSelect(
           }
           break;
         }
-        case 'a': // select all
+        case 'a':
           for (const item of state.items) {
             if (!item.isGroupHeader) item.checked = true;
           }
           updateGroupHeaders(state.items);
           break;
-        case 'n': // deselect all
+        case 'n':
           for (const item of state.items) {
             if (!item.isGroupHeader) item.checked = false;
           }
           updateGroupHeaders(state.items);
           break;
-        case '\r': // enter — confirm
-        case '\n': {
+        case 'return':
+        case 'enter': {
           cleanup();
+          stdin.removeListener('keypress', onKeypress);
           const selected = state.items
             .filter((item) => !item.isGroupHeader && item.checked)
             .map((item) => item.skill);
           resolve(selected);
           return;
         }
-        case '\x03': // Ctrl+C
-        case 'q': {
+        case 'q':
+        case 'escape': {
           cleanup();
+          stdin.removeListener('keypress', onKeypress);
           resolve([]);
           return;
         }
+        default:
+          return; // unknown key — don't redraw
       }
       draw();
-    });
+    };
+
+    stdin.on('keypress', onKeypress);
   });
 }
