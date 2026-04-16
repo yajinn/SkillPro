@@ -11,8 +11,12 @@
 .idea/
 *.swp
 
-# Node / Python (future dev tooling)
+# Node / TypeScript
 node_modules/
+dist/
+*.tsbuildinfo
+
+# Python (legacy v1)
 __pycache__/
 *.pyc
 .venv/
