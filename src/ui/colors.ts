@@ -1,7 +1,15 @@
-const enabled =
-  !process.env['NO_COLOR'] &&
-  !process.argv.includes('--no-color') &&
-  process.stderr.isTTY;
+// Color enablement follows the standard conventions used by the wider Node
+// ecosystem (https://no-color.org, https://force-color.org):
+//   NO_COLOR set            → disabled
+//   --no-color flag         → disabled
+//   FORCE_COLOR set         → enabled unconditionally
+//   Otherwise, follow TTY   → enabled only if stderr is a terminal
+const enabled = (() => {
+  if (process.env['NO_COLOR']) return false;
+  if (process.argv.includes('--no-color')) return false;
+  if (process.env['FORCE_COLOR']) return true;
+  return !!process.stderr.isTTY;
+})();
 
 const fmt =
   (open: string, close: string) =>
@@ -20,6 +28,11 @@ export const magenta = fmt('35', '39');
 export const cyan = fmt('36', '39');
 export const gray = fmt('90', '39');
 export const white = fmt('97', '39');
+
+// Brand orange — matches landing-page "run" color (#F97316).
+// ANSI 256-color index 208 is the closest standard match; TrueColor falls
+// back gracefully in older terminals via the 256-color code.
+export const orange = fmt('38;5;208', '39');
 
 export const symbols = {
   check: enabled ? '\u2714' : '+',

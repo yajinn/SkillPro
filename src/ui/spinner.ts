@@ -1,4 +1,4 @@
-import { cyan, dim } from './colors.js';
+import { orange, dim } from './colors.js';
 
 const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const INTERVAL = 80;
@@ -17,7 +17,7 @@ export class Spinner {
     process.stderr.write('\x1b[?25l'); // hide cursor
     this.timer = setInterval(() => {
       const frame = FRAMES[this.frameIndex % FRAMES.length]!;
-      process.stderr.write(`\r\x1b[K  ${cyan(frame)} ${this.text}`);
+      process.stderr.write(`\r\x1b[K  ${orange(frame)} ${this.text}`);
       this.frameIndex++;
     }, INTERVAL);
   }

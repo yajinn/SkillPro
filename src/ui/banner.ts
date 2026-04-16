@@ -1,6 +1,6 @@
-import { bold, cyan, dim, gray, green, white, yellow } from './colors.js';
+import { bold, orange, dim, gray, green, white, yellow } from './colors.js';
 
-const VERSION = '2.6.2';
+const VERSION = '2.6.3';
 const TAGLINE = 'Zero-config skill discovery for AI coding agents';
 
 /**
@@ -34,12 +34,12 @@ export function printBanner(): void {
 
   const lines = [
     '',
-    `   ${cyan(`╭${border}╮`)}`,
-    `   ${cyan('│')}${emptyRow}${cyan('│')}`,
-    `   ${cyan('│')}${row1}${cyan('│')}`,
-    `   ${cyan('│')}${row2}${cyan('│')}`,
-    `   ${cyan('│')}${emptyRow}${cyan('│')}`,
-    `   ${cyan(`╰${border}╯`)}`,
+    `   ${orange(`╭${border}╮`)}`,
+    `   ${orange('│')}${emptyRow}${orange('│')}`,
+    `   ${orange('│')}${row1}${orange('│')}`,
+    `   ${orange('│')}${row2}${orange('│')}`,
+    `   ${orange('│')}${emptyRow}${orange('│')}`,
+    `   ${orange(`╰${border}╯`)}`,
     '',
   ];
 
@@ -51,7 +51,7 @@ export function printBanner(): void {
  */
 export function printCompactBanner(): void {
   process.stderr.write('\n');
-  process.stderr.write(`  ${bold(cyan('SkillPro'))} ${dim(`v${VERSION}`)} ${dim('·')} ${gray(TAGLINE)}\n`);
+  process.stderr.write(`  ${bold(orange('SkillPro'))} ${dim(`v${VERSION}`)} ${dim('·')} ${gray(TAGLINE)}\n`);
   process.stderr.write('\n');
 }
 

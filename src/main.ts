@@ -2,7 +2,7 @@ import { parseArgs } from 'node:util';
 import type { CliArgs } from './types.js';
 import { printBanner, getVersion } from './ui/banner.js';
 import { Spinner } from './ui/spinner.js';
-import { bold, cyan, dim, green, gray, red, yellow, symbols } from './ui/colors.js';
+import { bold, orange, dim, green, gray, red, yellow, symbols } from './ui/colors.js';
 import { detectStack } from './detect/stack.js';
 import { getStacks, matchSkills } from './registry.js';
 import type { MatchedSkill } from './registry.js';
@@ -77,7 +77,7 @@ function formatInstalls(n: number): string {
 }
 
 function sourceTag(skill: MatchedSkill): string {
-  if (skill.source === 'Anthropic Skills') return bold(cyan('anthropic'));
+  if (skill.source === 'Anthropic Skills') return bold(orange('anthropic'));
   const installs = formatInstalls(skill.weekly_installs ?? 0);
   if (installs) return green(installs);
   const stars = skill.github_stars ?? 0;
@@ -250,11 +250,11 @@ function printDetectionReport(detected: ReturnType<typeof detectStack>): void {
   const pm = detected.packageManager;
 
   // Section header
-  process.stderr.write(`  ${cyan('◆')} ${bold('Detected project:')}\n\n`);
+  process.stderr.write(`  ${orange('◆')} ${bold('Detected project:')}\n\n`);
 
   // Language + package manager line
   process.stderr.write(
-    `    ${dim('language')}  ${bold(cyan(languageLabel))}   ${dim('·')}   ${dim('package manager')}  ${bold(pm)}\n`,
+    `    ${dim('language')}  ${bold(orange(languageLabel))}   ${dim('·')}   ${dim('package manager')}  ${bold(pm)}\n`,
   );
 
   // Stack grid — all detected stacks as pills
@@ -274,7 +274,7 @@ function printDetectionReport(detected: ReturnType<typeof detectStack>): void {
 
   // Workspaces breakdown (for monorepos)
   if (detected.workspaces && detected.workspaces.length > 0) {
-    process.stderr.write(`\n  ${cyan('◆')} ${bold(`${detected.workspaces.length} workspaces:`)}\n\n`);
+    process.stderr.write(`\n  ${orange('◆')} ${bold(`${detected.workspaces.length} workspaces:`)}\n\n`);
     const maxNameLen = Math.max(...detected.workspaces.map((w) => w.name.length));
     for (const ws of detected.workspaces) {
       const pad = ws.name.padEnd(maxNameLen);
@@ -307,7 +307,7 @@ async function showUpdateNotifications(
       process.stderr.write(
         `  ${yellow('↑')} ${bold('SkillPro update available')}: ${dim(cliUpdate.current)} → ${green(cliUpdate.latest)}\n`,
       );
-      process.stderr.write(`    ${dim('Run:')} ${cyan('npm i -g skillpro@latest')}  ${dim('or')}  ${cyan('npx skillpro@latest')}\n\n`);
+      process.stderr.write(`    ${dim('Run:')} ${orange('npm i -g skillpro@latest')}  ${dim('or')}  ${orange('npx skillpro@latest')}\n\n`);
     }
   }
 
@@ -340,7 +340,7 @@ async function showUpdateNotifications(
             `    ${red('✗')} ${bold(`${report.deprecated.length} deprecated`)}: ${dim(report.deprecated.slice(0, 3).join(', '))}\n`,
           );
         }
-        process.stderr.write(`    ${dim('Run:')} ${cyan('npx skillpro --update')}\n\n`);
+        process.stderr.write(`    ${dim('Run:')} ${orange('npx skillpro --update')}\n\n`);
       }
     } catch {
       // Skill update check failed — silent

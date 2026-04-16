@@ -1,5 +1,5 @@
 import type { ScoredSkill } from '../types.js';
-import { bold, cyan, dim, green, gray, yellow, symbols } from './colors.js';
+import { bold, orange, dim, green, gray, yellow, symbols } from './colors.js';
 import { clusterSkills } from '../score/clustering.js';
 
 interface SelectionState {
@@ -55,7 +55,7 @@ function renderLine(item: SelectionItem, isActive: boolean): string {
     return `\n  ${label} ${count}`;
   }
 
-  const pointer = isActive ? cyan(symbols.pointer) : ' ';
+  const pointer = isActive ? orange(symbols.pointer) : ' ';
   const checkbox = item.checked
     ? green(symbols.checkboxOn)
     : dim(symbols.checkboxOff);
