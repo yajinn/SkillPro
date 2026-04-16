@@ -13,8 +13,8 @@
  *   sveltekit (85) > svelte (50)
  */
 
-import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 
 // ─── Types ────────────────────────────────────────────────────────────
 
@@ -37,12 +37,18 @@ export interface DetectedStack {
   primary: StackDefinition;
   /** All detected stacks, sorted by priority desc */
   all: StackDefinition[];
-  /** Raw dependencies from package.json */
+  /** Raw dependencies union from root + all workspaces */
   dependencies: string[];
   /** Project language */
   language: string;
   /** Package manager */
   packageManager: string;
+  /** If monorepo: per-workspace detected stacks */
+  workspaces?: Array<{
+    path: string;
+    name: string;
+    stacks: StackDefinition[];
+  }>;
 }
 
 // ─── Manifest readers ─────────────────────────────────────────────────
@@ -59,6 +65,90 @@ function readPackageJson(dir: string): PackageJson | null {
     return JSON.parse(readFileSync(path, 'utf-8')) as PackageJson;
   } catch {
     return null;
+  }
+}
+
+// ─── Monorepo / workspace detection ───────────────────────────────────
+
+/**
+ * Detect monorepo workspace patterns from npm/yarn/pnpm workspaces,
+ * turborepo, nx, lerna. Returns glob patterns like ["apps/*", "packages/*"]
+ * or null if not a monorepo.
+ */
+function getWorkspacePatterns(dir: string, pkg: PackageJson | null): string[] | null {
+  // 1. npm/yarn workspaces in package.json
+  if (pkg?.workspaces) {
+    if (Array.isArray(pkg.workspaces)) return pkg.workspaces as string[];
+    if (typeof pkg.workspaces === 'object' && pkg.workspaces !== null) {
+      const ws = pkg.workspaces as { packages?: string[] };
+      if (Array.isArray(ws.packages)) return ws.packages;
+    }
+  }
+
+  // 2. pnpm workspaces in pnpm-workspace.yaml (simple parse)
+  const pnpmPath = join(dir, 'pnpm-workspace.yaml');
+  if (existsSync(pnpmPath)) {
+    try {
+      const content = readFileSync(pnpmPath, 'utf-8');
+      const patterns: string[] = [];
+      // Match YAML array: "  - 'apps/*'" or "  - apps/*"
+      for (const m of content.matchAll(/^\s*-\s*['"]?([^'"\n#]+?)['"]?\s*$/gm)) {
+        const p = m[1]?.trim();
+        if (p) patterns.push(p);
+      }
+      if (patterns.length > 0) return patterns;
+    } catch { /* */ }
+  }
+
+  // 3. lerna.json
+  const lernaPath = join(dir, 'lerna.json');
+  if (existsSync(lernaPath)) {
+    try {
+      const doc = JSON.parse(readFileSync(lernaPath, 'utf-8'));
+      if (Array.isArray(doc.packages)) return doc.packages;
+    } catch { /* */ }
+  }
+
+  // 4. nx.json / turbo.json — these use package.json workspaces
+  //    so we already caught them in step 1 if workspaces field exists.
+
+  return null;
+}
+
+/**
+ * Expand a glob like "apps/*" into actual directories under root.
+ * Simple implementation — only handles trailing wildcards.
+ */
+function expandWorkspaceGlob(root: string, pattern: string): string[] {
+  // Remove leading "./"
+  const clean = pattern.replace(/^\.\//, '');
+
+  // Exact path (no wildcard)
+  if (!clean.includes('*')) {
+    const full = join(root, clean);
+    if (existsSync(join(full, 'package.json'))) return [full];
+    return [];
+  }
+
+  // Trailing wildcard: "apps/*"
+  const starIdx = clean.indexOf('*');
+  const prefix = clean.slice(0, starIdx).replace(/\/+$/, '');
+  const parent = join(root, prefix);
+  if (!existsSync(parent)) return [];
+
+  try {
+    const entries = readdirSync(parent);
+    const results: string[] = [];
+    for (const entry of entries) {
+      const full = join(parent, entry);
+      try {
+        if (!statSync(full).isDirectory()) continue;
+        if (existsSync(join(full, 'package.json'))) results.push(full);
+      } catch { /* */ }
+    }
+    return results;
+  } catch {
+    return [];
   }
 }
 
@@ -301,15 +391,16 @@ function filterBuildNoise(
 
 // ─── Public API ───────────────────────────────────────────────────────
 
-export function detectStack(
+/**
+ * Collect deps + match stacks for a single directory.
+ * Used by detectStack for root AND each workspace.
+ */
+function detectForDir(
   dir: string,
   stacks: StackDefinition[],
-): DetectedStack {
+  language: string,
+): { deps: string[]; matched: StackDefinition[] } {
   const pkg = readPackageJson(dir);
-  const language = detectLanguage(dir, pkg);
-  const packageManager = detectPackageManager(dir, language);
-
-  // Collect ALL dependencies across all manifest types
   const allDeps: string[] = [];
 
   if (pkg) allDeps.push(...getAllJsDeps(pkg));
@@ -324,18 +415,58 @@ export function detectStack(
   }
 
   const depsSet = new Set(allDeps.map((d) => d.toLowerCase()));
-
-  // Match against all stack definitions
   let matched = stacks.filter((s) => matchStack(s, depsSet, dir));
-
-  // Filter build noise
   matched = filterBuildNoise(matched, language);
-
-  // Sort by priority descending
   matched.sort((a, b) => b.priority - a.priority);
 
-  // The primary stack is the highest-priority match
-  const primary = matched[0] ?? {
+  return { deps: allDeps, matched };
+}
+
+export function detectStack(
+  dir: string,
+  stacks: StackDefinition[],
+): DetectedStack {
+  const pkg = readPackageJson(dir);
+  const language = detectLanguage(dir, pkg);
+  const packageManager = detectPackageManager(dir, language);
+
+  // Start with root detection
+  const { deps: rootDeps, matched: rootMatched } = detectForDir(dir, stacks, language);
+  const allDeps = [...rootDeps];
+  const allMatchedIds = new Set(rootMatched.map((s) => s.id));
+  const allMatched = [...rootMatched];
+
+  // ─── Monorepo: walk all workspaces ───
+  const workspacesInfo: Array<{ path: string; name: string; stacks: StackDefinition[] }> = [];
+  const patterns = getWorkspacePatterns(dir, pkg);
+  if (patterns) {
+    for (const pattern of patterns) {
+      for (const wsPath of expandWorkspaceGlob(dir, pattern)) {
+        const wsPkg = readPackageJson(wsPath);
+        const wsLang = detectLanguage(wsPath, wsPkg);
+        const { deps: wsDeps, matched: wsMatched } = detectForDir(wsPath, stacks, wsLang);
+
+        allDeps.push(...wsDeps);
+        for (const m of wsMatched) {
+          if (!allMatchedIds.has(m.id)) {
+            allMatchedIds.add(m.id);
+            allMatched.push(m);
+          }
+        }
+
+        workspacesInfo.push({
+          path: wsPath,
+          name: (wsPkg?.name as string) ?? wsPath.split('/').pop() ?? 'unknown',
+          stacks: wsMatched,
+        });
+      }
+    }
+  }
+
+  // Sort aggregated stacks by priority
+  allMatched.sort((a, b) => b.priority - a.priority);
+
+  const primary = allMatched[0] ?? {
     id: language,
     name: language,
     detect: { packages: [], files: [] },
@@ -346,9 +477,10 @@ export function detectStack(
 
   return {
     primary,
-    all: matched,
+    all: allMatched,
     dependencies: allDeps,
     language,
     packageManager,
+    ...(workspacesInfo.length > 0 ? { workspaces: workspacesInfo } : {}),
   };
 }

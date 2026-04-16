@@ -113,7 +113,20 @@ export async function main(): Promise<void> {
   if (detected.all.length > 0) {
     process.stderr.write(`  ${dim(stackNames)}\n`);
   }
-  process.stderr.write(`  ${dim(detected.packageManager)}\n\n`);
+  process.stderr.write(`  ${dim(detected.packageManager)}`);
+  if (detected.workspaces && detected.workspaces.length > 0) {
+    process.stderr.write(` ${dim('·')} ${cyan(`${detected.workspaces.length} workspaces`)}`);
+  }
+  process.stderr.write('\n');
+
+  // Show per-workspace breakdown in monorepo
+  if (detected.workspaces && detected.workspaces.length > 0) {
+    for (const ws of detected.workspaces) {
+      const wsStacks = ws.stacks.map((s) => s.name).join(', ') || dim('—');
+      process.stderr.write(`    ${dim('↳')} ${bold(ws.name)} ${dim(wsStacks)}\n`);
+    }
+  }
+  process.stderr.write('\n');
 
   // ─── Step 2: Match & rank skills ───────────────────────────────────
   spinner.start('Matching skills...');
