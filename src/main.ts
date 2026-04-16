@@ -118,31 +118,12 @@ export async function main(): Promise<void> {
     : Promise.resolve(null);
 
   // ─── Step 1: Detect stack ──────────────────────────────────────────
-  spinner.start('Detecting project...');
+  spinner.start('Scanning project...');
   const stacks = getStacks();
   const detected = detectStack(process.cwd(), stacks);
-  const stackNames = detected.all.map((s) => s.name).join(', ');
+  spinner.stop();
 
-  spinner.succeed(
-    `${bold(detected.language)}${detected.primary.id !== detected.language ? ` / ${cyan(detected.primary.name)}` : ''}`,
-  );
-  if (detected.all.length > 0) {
-    process.stderr.write(`  ${dim(stackNames)}\n`);
-  }
-  process.stderr.write(`  ${dim(detected.packageManager)}`);
-  if (detected.workspaces && detected.workspaces.length > 0) {
-    process.stderr.write(` ${dim('·')} ${cyan(`${detected.workspaces.length} workspaces`)}`);
-  }
-  process.stderr.write('\n');
-
-  // Show per-workspace breakdown in monorepo
-  if (detected.workspaces && detected.workspaces.length > 0) {
-    for (const ws of detected.workspaces) {
-      const wsStacks = ws.stacks.map((s) => s.name).join(', ') || dim('—');
-      process.stderr.write(`    ${dim('↳')} ${bold(ws.name)} ${dim(wsStacks)}\n`);
-    }
-  }
-  process.stderr.write('\n');
+  printDetectionReport(detected);
 
   // ─── Step 1.5: Auto-update notifications (non-blocking) ────────────
   await showUpdateNotifications(cliUpdatePromise, registryRefreshPromise, config);
@@ -256,6 +237,60 @@ export async function main(): Promise<void> {
   }
 
   process.stderr.write('\n');
+}
+
+// ─── Detection Report ──────────────────────────────────────────────────
+
+/**
+ * Render the detected project stack as a visually prominent block.
+ * Grid of tech pills + language + package manager + workspaces.
+ */
+function printDetectionReport(detected: ReturnType<typeof detectStack>): void {
+  const languageLabel = titleCase(detected.language);
+  const pm = detected.packageManager;
+
+  // Section header
+  process.stderr.write(`  ${cyan('◆')} ${bold('Detected project:')}\n\n`);
+
+  // Language + package manager line
+  process.stderr.write(
+    `    ${dim('language')}  ${bold(cyan(languageLabel))}   ${dim('·')}   ${dim('package manager')}  ${bold(pm)}\n`,
+  );
+
+  // Stack grid — all detected stacks as pills
+  if (detected.all.length > 0) {
+    process.stderr.write(`    ${dim('stacks')}    `);
+    const pills = detected.all.map((s) => `${green('✓')} ${bold(s.name)}`);
+    // Layout as wrapped line with 3 per row max
+    const perRow = 3;
+    for (let i = 0; i < pills.length; i += perRow) {
+      const row = pills.slice(i, i + perRow).join('   ');
+      if (i === 0) process.stderr.write(`${row}\n`);
+      else process.stderr.write(`              ${row}\n`);
+    }
+  } else {
+    process.stderr.write(`    ${dim('stacks')}    ${dim('(no framework-specific stacks detected)')}\n`);
+  }
+
+  // Workspaces breakdown (for monorepos)
+  if (detected.workspaces && detected.workspaces.length > 0) {
+    process.stderr.write(`\n  ${cyan('◆')} ${bold(`${detected.workspaces.length} workspaces:`)}\n\n`);
+    const maxNameLen = Math.max(...detected.workspaces.map((w) => w.name.length));
+    for (const ws of detected.workspaces) {
+      const pad = ws.name.padEnd(maxNameLen);
+      const wsStacks = ws.stacks.length > 0
+        ? ws.stacks.map((s) => green(s.name)).join(`${dim(' · ')}`)
+        : dim('(no stacks)');
+      process.stderr.write(`    ${dim('↳')} ${bold(pad)}   ${wsStacks}\n`);
+    }
+  }
+
+  process.stderr.write('\n');
+}
+
+function titleCase(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 // ─── Update Notifications ──────────────────────────────────────────────
