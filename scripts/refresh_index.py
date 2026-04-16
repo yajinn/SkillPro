@@ -273,9 +273,16 @@ def main() -> int:
     if args.quiet:
         import io
         real_stdout = sys.stdout
-        sys.stdout = io.StringIO()  # swallow adapter prints
+        captured = io.StringIO()
+        sys.stdout = captured
         try:
             index = build_index(sources)
+        except Exception:
+            # On failure, dump captured adapter output to stderr for debugging
+            noise = captured.getvalue()
+            if noise:
+                sys.stderr.write(noise)
+            raise
         finally:
             sys.stdout = real_stdout
     else:

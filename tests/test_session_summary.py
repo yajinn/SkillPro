@@ -120,7 +120,7 @@ class TestHappyPath(unittest.TestCase):
             self.assertIn("nextjs", text)
             self.assertIn("tanstack-query", text)
             self.assertIn("rec", text)
-            self.assertIn("/yajinn:sf", text)
+            self.assertIn("/skillforge:sf", text)
 
     def test_pending_json_seeded_with_recommended_checked(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -172,7 +172,7 @@ class TestFallbacks(unittest.TestCase):
             rc, msg = _run(proj, home)
             self.assertEqual(rc, 0)
             self.assertIn("not detected", msg["additionalContext"])
-            self.assertIn("/yajinn:sf", msg["additionalContext"])
+            self.assertIn("/skillforge:sf", msg["additionalContext"])
 
     def test_index_missing_returns_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -185,7 +185,7 @@ class TestFallbacks(unittest.TestCase):
             self.assertEqual(rc, 0)
             text = msg["additionalContext"]
             self.assertIn("index missing", text)
-            self.assertIn("/yajinn:sf refresh", text)
+            self.assertIn("/skillforge:sf refresh", text)
             self.assertIn("typescript", text)
 
     def test_corrupt_index_returns_unreadable(self):

@@ -169,102 +169,30 @@ def _format_libs_part(profile: dict) -> str:
     )
 
 
-# ─── Step 2: index ──────────────────────────────────────────────────
-def _load_index() -> tuple[str, dict | None]:
-    """Return (state, index) where state ∈ {ok, stale, missing, corrupt}."""
-    path = Path(os.path.expanduser("~/.claude/skillforge/index.json"))
-    if not path.exists():
-        return "missing", None
-    try:
-        idx = json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError):
-        return "corrupt", None
-
-    try:
-        fetched = datetime.strptime(
-            idx.get("fetched_at", "1970-01-01T00:00:00Z"),
-            "%Y-%m-%dT%H:%M:%SZ",
-        ).replace(tzinfo=timezone.utc)
-        ttl = idx.get("ttl_seconds", 604800)
-        age = (datetime.now(timezone.utc) - fetched).total_seconds()
-        if age > ttl:
-            return "stale", idx
-    except Exception:
-        pass
-    return "ok", idx
+# ─── Step 2: index (delegated to pipeline.py) ───────────────────────
+from pipeline import (  # noqa: E402
+    load_index as _load_index,
+    load_profile as _load_profile_from_disk,
+    STATE_OK, STATE_STALE, STATE_MISSING, STATE_CORRUPT,
+)
 
 
 def _describe_index_state(state: str, idx: dict) -> str:
     count = len(idx.get("skills", []))
-    # "sources" isn't in index.json by default but we can guess from the
-    # distinct plugin fields on each skill
     plugins = {s.get("plugin", "") for s in idx.get("skills", []) if s.get("plugin")}
     sources_count = len(plugins) or 1
-    if state == "stale":
+    if state == STATE_STALE:
         return MSG["index_stale"].format(count=count)
     return MSG["index_ok"].format(
         count=count,
-        state="fresh" if state == "ok" else state,
+        state="fresh" if state == STATE_OK else state,
         sources=sources_count,
     )
 
 
-# ─── Step 3: score ──────────────────────────────────────────────────
-def _score_all(profile: dict, idx: dict) -> tuple[list, list]:
-    """Return (recommended, optional) lists of score-enriched skill dicts."""
-    from score import score_skill, classify
-
-    thresholds = idx.get("scoring_rules", {}).get("thresholds", {
-        "recommended": 10,
-        "optional": 1,
-        "not_relevant": 0,
-    })
-
-    rec = []
-    opt = []
-    for skill in idx.get("skills", []):
-        try:
-            s = score_skill(skill, profile)
-        except Exception:
-            continue
-        cat = classify(s, thresholds)
-        entry = {
-            "id": skill.get("id", "?"),
-            "name": skill.get("name", skill.get("id", "?")),
-            "category": skill.get("category"),
-            "score": s,
-            "description": skill.get("description", ""),
-            "plugin": skill.get("plugin", ""),
-        }
-        if cat == "recommended":
-            rec.append(entry)
-        elif cat == "optional":
-            opt.append(entry)
-
-    rec.sort(key=lambda x: -x["score"])
-    opt.sort(key=lambda x: -x["score"])
-    return rec, opt
-
-
-# ─── Step 4: seed ───────────────────────────────────────────────────
-def _seed_pending(recommended: list, optional: list, project_dir: Path) -> Path:
-    """Write pending.json via pending._save."""
-    import pending
-
-    items = []
-    for e in recommended:
-        items.append({**e, "checked": True})
-    for e in optional:
-        items.append({**e, "checked": False})
-
-    doc = {
-        "version": 1,
-        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "project_dir": str(project_dir.resolve()),
-        "items": items,
-    }
-    pending._save(doc)
-    return pending.PENDING_PATH
+# ─── Step 3 + 4: score & seed (delegated to pipeline.py) ────────────
+from pipeline import score_and_classify as _score_all  # noqa: E402
+from pipeline import seed_pending as _seed_pending  # noqa: E402
 
 
 # ─── Main orchestration ─────────────────────────────────────────────
@@ -274,13 +202,24 @@ def main() -> int:
         else os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
     ).resolve()
 
-    # Step 1: Detect
+    # Step 1: Detect — skip re-running detect.sh if profile is fresh
+    # (SessionStart already ran it). Check mtime < 60s as heuristic.
     _print(MSG["header_detect"])
     _brief_delay()
-    rc, profile = _run_detect(project_dir)
-    if rc != 0 or profile is None:
-        _print(MSG["detect_failed"])
-        return 1
+    profile = _load_profile_from_disk(project_dir)
+    profile_file = project_dir / ".claude" / "project-profile.json"
+    if profile is not None and profile_file.exists():
+        try:
+            age = time.time() - profile_file.stat().st_mtime
+            if age > 60:
+                profile = None  # stale, re-detect
+        except OSError:
+            profile = None
+    if profile is None:
+        rc, profile = _run_detect(project_dir)
+        if rc != 0 or profile is None:
+            _print(MSG["detect_failed"])
+            return 1
     if (profile.get("language") or "unknown") == "unknown":
         _print(MSG["detect_empty"])
         # Still continue — maybe the index has universal skills
@@ -305,10 +244,10 @@ def main() -> int:
     _print(MSG["header_index"])
     _brief_delay()
     state, idx = _load_index()
-    if state == "missing":
+    if state == STATE_MISSING:
         _print(MSG["index_missing"])
         return 2
-    if state == "corrupt":
+    if state == STATE_CORRUPT:
         _print(MSG["index_corrupt"])
         return 2
     _print(_describe_index_state(state, idx))

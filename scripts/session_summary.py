@@ -13,7 +13,7 @@ Design invariants
    emits a minimal fallback JSON and exits 0. If the index is missing,
    stale, or corrupt, the user still sees SOMETHING actionable.
 2. **No network.** Never triggers a refresh. That's the user's call
-   via `/yajinn:sf refresh` — SessionStart is not the place for
+   via `/skillforge:sf refresh` — SessionStart is not the place for
    multi-minute HTTP fetches.
 3. **Reuses existing modules.** Imports `score.score_skill` / `classify`
    and `pending.cmd_seed` rather than re-implementing the pipeline.
@@ -35,7 +35,7 @@ Fallback cases
 Happy path output shape
 -----------------------
     SkillForge: <language> / <framework> · <N libs> ·
-    <R> rec / <O> opt · run /yajinn:sf to review
+    <R> rec / <O> opt · run /skillforge:sf to review
 
 Skipped segments:
 - `<framework>` omitted if null/unknown
@@ -68,124 +68,40 @@ def _emit(text: str) -> None:
     sys.exit(0)
 
 
-def _profile_path(project_dir: Path) -> Path:
-    return project_dir / ".claude" / "project-profile.json"
-
-
-def _index_path() -> Path:
-    return Path(os.path.expanduser("~/.claude/skillforge/index.json"))
-
-
-def _load_profile(project_dir: Path) -> dict | None:
-    path = _profile_path(project_dir)
-    if not path.exists():
-        return None
-    try:
-        return json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError):
-        return None
+from pipeline import (  # noqa: E402
+    load_profile as _load_profile,
+    load_index as _pipeline_load_index,
+    score_and_classify,
+    seed_pending,
+    STATE_OK, STATE_STALE, STATE_MISSING, STATE_CORRUPT,
+)
 
 
 def _load_index() -> tuple[dict | None, str]:
-    """Return (index_dict, state) where state ∈ {ok, missing, stale, corrupt}."""
-    path = _index_path()
-    if not path.exists():
-        return None, "missing"
-    try:
-        idx = json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError):
-        return None, "corrupt"
-    # Best-effort stale check — doesn't block, just annotates output
-    state = "ok"
-    try:
-        from datetime import datetime, timezone
-        fetched = datetime.strptime(
-            idx.get("fetched_at", "1970-01-01T00:00:00Z"),
-            "%Y-%m-%dT%H:%M:%SZ",
-        ).replace(tzinfo=timezone.utc)
-        ttl = idx.get("ttl_seconds", 604800)
-        age = (datetime.now(timezone.utc) - fetched).total_seconds()
-        if age > ttl:
-            state = "stale"
-    except Exception:
-        pass
+    """Wrapper around pipeline.load_index with session_summary's (idx, state) return order."""
+    state, idx = _pipeline_load_index()
     return idx, state
 
 
 def _score_and_seed(profile: dict, index: dict, project_dir: Path) -> dict:
-    """Score the profile against the index and seed pending.json.
+    """Score + seed using shared pipeline functions.
 
-    Returns a dict with keys: recommended (int), optional (int).
-    Never raises — on failure returns {'recommended': 0, 'optional': 0,
-    'error': '<msg>'}.
+    Returns dict with keys: recommended (int), optional (int), and
+    optionally 'error' (str) on failure. Never raises.
     """
     try:
-        from score import score_skill, classify  # noqa: E402
+        rec_entries, opt_entries = score_and_classify(profile, index)
     except Exception as exc:
-        return {"recommended": 0, "optional": 0, "error": f"score import: {exc}"}
+        return {"recommended": 0, "optional": 0, "error": f"score: {exc}"}
 
-    thresholds = index.get("scoring_rules", {}).get("thresholds", {
-        "recommended": 10,
-        "optional": 1,
-        "not_relevant": 0,
-    })
-
-    rec = 0
-    opt = 0
-    recommended_entries = []
-    optional_entries = []
-    for skill in index.get("skills", []):
-        try:
-            s = score_skill(skill, profile)
-        except Exception:
-            continue
-        cat = classify(s, thresholds)
-        if cat == "recommended":
-            rec += 1
-            recommended_entries.append({
-                "id": skill.get("id", "?"),
-                "name": skill.get("name", skill.get("id", "?")),
-                "category": skill.get("category"),
-                "score": s,
-                "description": skill.get("description", ""),
-                "plugin": skill.get("plugin", ""),
-            })
-        elif cat == "optional":
-            opt += 1
-            optional_entries.append({
-                "id": skill.get("id", "?"),
-                "name": skill.get("name", skill.get("id", "?")),
-                "category": skill.get("category"),
-                "score": s,
-                "description": skill.get("description", ""),
-                "plugin": skill.get("plugin", ""),
-            })
-
-    # Seed pending.json directly — we already have the scored entries,
-    # so we write them ourselves instead of calling pending.cmd_seed
-    # (which shells out to score.py as a subprocess and would duplicate
-    # all the work we just did).
     try:
-        from datetime import datetime, timezone
-        import pending  # noqa: E402
-        items = []
-        for e in recommended_entries:
-            items.append({**e, "checked": True})
-        for e in optional_entries:
-            items.append({**e, "checked": False})
-        doc = {
-            "version": 1,
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "project_dir": str(project_dir.resolve()),
-            "items": items,
-        }
-        pending._save(doc)
+        seed_pending(rec_entries, opt_entries, project_dir)
     except Exception:
         # Don't fail the summary if seeding breaks — Claude will still
         # see the one-line context and the user can run /sf setup manually.
         pass
 
-    return {"recommended": rec, "optional": opt}
+    return {"recommended": len(rec_entries), "optional": len(opt_entries)}
 
 
 def _format_summary(profile: dict, index_state: str, scores: dict) -> str:
@@ -212,7 +128,7 @@ def _format_summary(profile: dict, index_state: str, scores: dict) -> str:
         if opt:
             score_part += f" / {opt} opt"
         parts.append(score_part)
-        parts.append("run /yajinn:sf to review")
+        parts.append("run /skillforge:sf to review")
 
     if index_state == "stale":
         parts.append("(index stale)")
@@ -230,21 +146,21 @@ def main() -> None:
 
         profile = _load_profile(project_dir)
         if profile is None:
-            _emit("SkillForge: project not detected, run /yajinn:sf")
+            _emit("SkillForge: project not detected, run /skillforge:sf")
 
         index, state = _load_index()
         if state == "missing":
             lang = profile.get("language") or "unknown"
             framework = profile.get("framework")
             fw = f" / {framework}" if framework else ""
-            _emit(f"SkillForge: {lang}{fw} · index missing, run /yajinn:sf refresh")
+            _emit(f"SkillForge: {lang}{fw} · index missing, run /skillforge:sf refresh")
         if state == "corrupt":
-            _emit("SkillForge: index unreadable, run /yajinn:sf refresh")
+            _emit("SkillForge: index unreadable, run /skillforge:sf refresh")
 
         scores = _score_and_seed(profile, index, project_dir)
         if "error" in scores:
             lang = profile.get("language") or "unknown"
-            _emit(f"SkillForge: {lang} · scoring failed, run /yajinn:sf")
+            _emit(f"SkillForge: {lang} · scoring failed, run /skillforge:sf")
 
         _emit(_format_summary(profile, state, scores))
     except SystemExit:
@@ -253,7 +169,7 @@ def main() -> None:
         # Absolute last-resort: print a generic fallback and exit 0.
         # Never crash the SessionStart hook chain.
         print(json.dumps({
-            "additionalContext": "SkillForge: summary error, run /yajinn:sf",
+            "additionalContext": "SkillForge: summary error, run /skillforge:sf",
         }))
         # Write the traceback to stderr so it lands in claude-code logs
         # without breaking stdout JSON parsing.
