@@ -114,6 +114,70 @@ function readGemfileDeps(dir: string): string[] {
   }
 }
 
+function readGoModDeps(dir: string): string[] {
+  try {
+    const content = readFileSync(join(dir, 'go.mod'), 'utf-8');
+    const deps: string[] = [];
+    // Match "  github.com/owner/repo vX.Y.Z" inside require blocks
+    for (const m of content.matchAll(/\s+(github\.com\/[\w.-]+\/[\w.-]+|[\w.-]+\/[\w.-]+)(?:\s+v?\d|\s*\n)/g)) {
+      deps.push(m[1].toLowerCase());
+      // Also add without prefix for short matching (gin-gonic/gin -> gin)
+      const parts = m[1].split('/');
+      if (parts.length >= 2) deps.push(parts[parts.length - 1].toLowerCase());
+    }
+    return deps;
+  } catch {
+    return [];
+  }
+}
+
+function readCargoDeps(dir: string): string[] {
+  try {
+    const content = readFileSync(join(dir, 'Cargo.toml'), 'utf-8');
+    const deps: string[] = [];
+    // Match [dependencies] and [dev-dependencies] sections
+    const depsMatch = content.match(/\[(?:dev-)?dependencies\]([\s\S]*?)(?=\n\[|\n*$)/g);
+    if (depsMatch) {
+      for (const section of depsMatch) {
+        for (const m of section.matchAll(/^([a-zA-Z0-9_-]+)\s*=/gm)) {
+          deps.push(m[1].toLowerCase());
+        }
+      }
+    }
+    return deps;
+  } catch {
+    return [];
+  }
+}
+
+function readPomDeps(dir: string): string[] {
+  try {
+    const content = readFileSync(join(dir, 'pom.xml'), 'utf-8');
+    const deps: string[] = [];
+    for (const m of content.matchAll(/<artifactId>([^<]+)<\/artifactId>/g)) {
+      deps.push(m[1].toLowerCase());
+    }
+    return deps;
+  } catch {
+    return [];
+  }
+}
+
+function readGradleDeps(dir: string): string[] {
+  try {
+    const content =
+      (readFileSync(join(dir, 'build.gradle'), 'utf-8').toLowerCase() + '\n' ||
+       readFileSync(join(dir, 'build.gradle.kts'), 'utf-8').toLowerCase() + '\n' || '');
+    const deps: string[] = [];
+    for (const m of content.matchAll(/['"]([a-z0-9.-]+:[a-z0-9.-]+)(?::[^'"]+)?['"]/g)) {
+      deps.push(m[1]);
+    }
+    return deps;
+  } catch {
+    return [];
+  }
+}
+
 /** Get all dependency names from package.json (deps + devDeps). */
 function getAllJsDeps(pkg: PackageJson): string[] {
   return [
@@ -252,6 +316,12 @@ export function detectStack(
   if (language === 'python') allDeps.push(...readPythonDeps(dir));
   if (language === 'php') allDeps.push(...readComposerDeps(dir));
   if (language === 'ruby') allDeps.push(...readGemfileDeps(dir));
+  if (language === 'go') allDeps.push(...readGoModDeps(dir));
+  if (language === 'rust') allDeps.push(...readCargoDeps(dir));
+  if (language === 'java') {
+    allDeps.push(...readPomDeps(dir));
+    allDeps.push(...readGradleDeps(dir));
+  }
 
   const depsSet = new Set(allDeps.map((d) => d.toLowerCase()));
 

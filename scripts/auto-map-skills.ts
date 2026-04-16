@@ -98,78 +98,71 @@ function detectPlatform(text: string): Platform {
 // CRITICAL: Each stack pattern must match ONLY skills for that exact stack.
 // Next.js skills → nextjs only (NOT react). Expo skills → expo only (NOT react-native).
 
-const SKILL_MATCHERS: Array<[string, RegExp[]]> = [
-  // ── Web Frameworks (specific to their framework only) ──
-  ['nextjs', [
-    /\bnext\.?js\b/i,
-    /\bapp[\s-]?router\b/i,
-    /\bpages[\s-]?router\b/i,
-    /\brsc\b/i,
-    /\bserver[\s-]?component/i,
-    /\bnext[\s-]config/i,
-    /\bnextjs/i,
-    /\bnext\s+(?:cache|upgrade|deploy|best)/i,
-  ]],
-  ['nuxt', [/\bnuxt/i, /\bnitro\b/i]],
-  ['sveltekit', [/\bsveltekit\b/i, /\bsvelte\s*kit\b/i]],
-  ['remix', [/\bremix\s+(?:run|framework|route)/i]],
-  ['gatsby', [/\bgatsby\b/i]],
-  ['astro', [/\bastro\s+(?:component|island|framework|build)/i]],
+// Strategy: Match if the framework name appears as a distinct word in the
+// skill id/name/description. Use \b<name>\b to prevent substring matches
+// (e.g. "expo" shouldn't match "exposure"). Platform filtering happens
+// separately via isPlatformCompatible() so we don't double-gate here.
 
-  // ── Mobile Frameworks (Expo is NOT React Native — separate stacks) ──
+const SKILL_MATCHERS: Array<[string, RegExp[]]> = [
+  // ── Web Frameworks ──
+  ['nextjs', [/\bnext\.?js\b/i, /\bapp[\s-]?router\b/i, /\bpages[\s-]?router\b/i, /\brsc\b/i, /\bserver[\s-]?component/i, /\bnextjs/i]],
+  ['nuxt', [/\bnuxt\b/i, /\bnitro\s+(?:server|engine)/i]],
+  ['sveltekit', [/\bsveltekit\b/i, /\bsvelte\s*kit\b/i]],
+  ['remix', [/\bremix\s+(?:run|framework|route|loader|action)/i, /\b@remix-run\b/i]],
+  ['gatsby', [/\bgatsby\b/i]],
+  ['astro', [/\bastro\s+(?:component|island|framework|build|integration)/i]],
+
+  // ── Mobile Frameworks ──
+  // Expo is NOT React Native — Expo skills only go to expo stack
   ['expo', [
-    /\bexpo\s+(?:sdk|cli|router|modules?|config|tailwind|deploy|api|dev)/i,
+    /\bexpo\b/i,
     /\beas\s+(?:build|submit|update|workflow)/i,
-    /\bexpo[\s-]?(?:router|module|cicd)/i,
-    /\bbuilding\s+native\s+(?:ui|expo)/i,
-    /\bnative\s+data\s+fetching.*expo/i,
-    /\bupgrading\s+expo/i,
   ]],
   ['react-native', [
-    /\breact[\s-]?native\s+(?:cli|best|perform|pattern|skill|module|animation)/i,
+    // React Native without expo context (negative lookbehind impossible in JS, so check description excludes expo)
+    /\breact[\s-]?native\b/i,
     /\brn[\s-]?(?:cli|best|pattern)/i,
     /\bflatlist\b/i,
     /\bmetro\s+(?:config|bundler)/i,
-    /\bnative\s+(?:module|view|ui)(?!\s+expo)/i,
-    // Only match "react-native" without expo context
   ]],
 
-  // ── Client Frameworks (generic, cross-platform) ──
-  ['react', [
-    /\breact\s+(?:hooks?|context|fiber|three|query|server|compose|tanstack|forms?|router(?![\s-]dom))/i,
-    /\buse[A-Z][a-z]\w+\(/,  // useHook(
-    /\bjsx\b/i,
-    /\bclass\s+component/i,
-    // Deliberately narrow — "react" alone is too common
-  ]],
-  ['vue', [/\bvue\s+(?:component|composition|reactive|template|directive)/i, /\bvuex\b/i, /\bpinia\b/i, /\bcomposition[\s-]?api\b/i]],
-  ['angular', [/\bangular\s+(?:component|module|signal|service|route|form)/i, /\brxjs\b/i, /\bng[\s-]?module/i, /\bsignals?\b.*angular/i]],
-  ['svelte', [/\bsvelte\s+(?:store|component|action|transition|store|slot)/i]],
+  // ── Client Frameworks ──
+  ['react', [/\breact\s+(?:hooks?|context|fiber|three|query|server|compose|tanstack|forms?|router(?![\s-]dom))/i, /\bjsx\b/i]],
+  ['vue', [/\bvue\.?js\b/i, /\bvue\s+(?:component|composition|reactive|template)/i, /\bvuex\b/i, /\bpinia\b/i]],
+  ['angular', [/\bangular\b/i, /\brxjs\s+(?:operator|observable)/i]],
+  ['svelte', [/\bsvelte\b/i]],
 
   // ── Desktop ──
-  ['electron', [/\belectron\s+(?:app|ipc|main|render)/i]],
-  ['tauri', [/\btauri\s+(?:app|command|plugin|config)/i]],
+  ['electron', [/\belectron\b/i]],
+  ['tauri', [/\btauri\b/i]],
 
   // ── Mobile Native ──
-  ['flutter', [
-    /\bflutter\s+(?:widget|architecture|anim|pattern|state|test|best)/i,
-    /\bwidget\s+(?:tree|build|stateless|stateful)/i,
-    /\briverpod\b/i,
-    /\bbloc\s+pattern\b/i,
-    /\bpubspec\b/i,
-  ]],
+  ['flutter', [/\bflutter\b/i, /\bwidget\s+(?:tree|build|stateless|stateful)/i, /\briverpod\b/i, /\bbloc\s+pattern\b/i]],
 
-  // ── Backend ──
-  ['express', [/\bexpress\.?js\s+(?:app|middleware|route|best)/i]],
-  ['fastify', [/\bfastify\s+(?:plugin|hook|schema|best)/i]],
-  ['nestjs', [/\bnestjs\b/i, /\bnest\.?js\s+(?:module|controller|service|guard|pipe)/i]],
-  ['hono', [/\bhono\s+(?:app|middleware|route)/i]],
-  ['django', [/\bdjango\s+(?:rest|model|view|template|orm|migration)/i, /\bdrf\b/i, /\bdjango[\s-]?rest\b/i]],
-  ['fastapi', [/\bfastapi\s+(?:route|depend|schema|best)/i]],
-  ['flask', [/\bflask\s+(?:app|route|blueprint|best)/i]],
-  ['laravel', [/\blaravel\s+(?:eloquent|blade|livewire|model|controller|best)/i, /\beloquent\s+(?:orm|model|relation)/i, /\bblade\s+template/i, /\blivewire\b/i]],
-  ['rails', [/\brails\s+(?:activerecord|model|controller|view|migration|best)/i, /\bruby[\s-]?on[\s-]?rails\b/i, /\bactiverecord\b/i]],
-  ['spring-boot', [/\bspring[\s-]?boot\s+(?:starter|app|config|security|best)/i, /\bspring[\s-]?framework\s+(?:bean|context|aop)/i, /\bjava[\s-]?spring\b/i]],
+  // ── Backend Frameworks ──
+  ['express', [/\bexpress\.?js\b/i, /\bexpress\s+(?:app|middleware|route)/i]],
+  ['fastify', [/\bfastify\b/i]],
+  ['nestjs', [/\bnestjs\b/i, /\bnest\.?js\b/i]],
+  ['hono', [/\bhono\b/i]],
+  ['django', [/\bdjango\b/i, /\bdrf\b/i]],
+  ['fastapi', [/\bfastapi\b/i]],
+  ['flask', [/\bflask\b/i]],
+  // Laravel must be PHP context — not confused with railway platform
+  ['laravel', [/\blaravel\b/i, /\beloquent\s+(?:orm|model|relation)/i, /\bblade\s+template/i, /\blivewire\b/i]],
+  // Rails = Ruby on Rails. \b prevents "railway" matches.
+  ['rails', [/\brails\b/i, /\bruby[\s-]?on[\s-]?rails\b/i, /\bactiverecord\b/i, /\bhotwire\b/i]],
+  ['spring-boot', [/\bspring[\s-]?boot\b/i, /\bspringboot\b/i]],
+
+  // ── Go Frameworks ──
+  ['gin', [/\bgin[\s-]?gonic\b/i, /\bgin\s+(?:framework|handler|middleware|router|context|web)/i]],
+  ['echo-go', [/\becho\s+(?:framework|handler|middleware|context|web)/i, /\blabstack\/echo\b/i]],
+  ['fiber', [/\bgofiber\b/i, /\bfiber\s+(?:framework|handler|middleware)/i]],
+
+  // ── Ruby (non-Rails) ──
+  ['sinatra', [/\bsinatra\b/i]],
+
+  // ── WordPress (NOT Laravel — keep separate even though both are PHP) ──
+  ['wordpress', [/\bwordpress\b/i, /\bwp[\s-](?:plugin|theme|cli|block|rest|content|admin|hook)/i, /\bgutenberg\b/i, /\bwp[\s-]?cli\b/i]],
 
   // ── Databases ──
   ['supabase', [/\bsupabase\s+(?:client|auth|database|storage|rls|edge|function|migration)/i, /\brow[\s-]?level[\s-]?security\b/i, /\bsupabase-postgres/i]],
@@ -221,15 +214,18 @@ const SKILL_MATCHERS: Array<[string, RegExp[]]> = [
 // These are ONLY applied if no primary stack match was found.
 // Prevents "skill mentions TypeScript" from triggering for every TS project.
 
+// NOTE: Language tags use SAME NAMES as detect/stack.ts languages.
+// "go" (lang) → "_go" (tag), "python" (lang) → "_python" (tag), etc.
 const LANGUAGE_FALLBACK_MATCHERS: Array<[string, RegExp[]]> = [
-  ['_typescript', [/\btypescript\s+(?:pattern|best|advanced|strict|expert|type[\s-]?safe)/i, /\btsconfig\b/i, /\btype[\s-]?safe\s+(?:api|orm|sdk)/i]],
-  ['_golang', [/\bgolang\s+(?:pattern|best|concurrency|error)/i, /\bgo\s+(?:concurrent|channel|goroutine|module|error[\s-]?handl)/i]],
-  ['_rust', [/\brust\s+(?:pattern|best|ownership|lifetime|crate)/i, /\bcargo\s+(?:workspace|manifest)/i]],
-  ['_python', [/\bpython\s+(?:pattern|best|modern|async)/i, /\bpytest\s+(?:fixture|mock)/i, /\bpep[\s-]?8\b/i]],
-  ['_java', [/\bjava\s+(?:pattern|best|concurrent|stream)/i, /\bkotlin\s+(?:pattern|best|coroutine)/i]],
-  ['_csharp', [/\bc#\s+(?:pattern|best|async)/i, /\b\.net\s+(?:core|framework|pattern)/i]],
-  ['_php', [/\bphp\s+(?:pattern|best|modern)/i, /\bphpstan\b/i, /\bpsr[\s-]?\d+/i]],
-  ['_ruby', [/\bruby\s+(?:pattern|best|block|meta)/i, /\brubocop\b/i, /\brspec\s+(?:test|matcher)/i]],
+  ['_typescript', [/\btypescript\b/i, /\btsconfig\b/i, /\btype[\s-]?safe\b/i]],
+  ['_go', [/\bgolang\b/i, /\bgoroutine/i, /\bgo\s+(?:module|concurrent|channel|error[\s-]?handl|pattern|best|perform)/i]],
+  ['_rust', [/\brust\b/i, /\bcargo\b/i, /\bownership\b/i, /\blifetime\b/i]],
+  ['_python', [/\bpython\b/i, /\bpytest\b/i, /\bpep[\s-]?8\b/i, /\bpip\s+install/i]],
+  ['_java', [/\bjava\s+(?:pattern|best|concurrent|stream|spring)/i, /\bjvm\b/i]],
+  ['_kotlin', [/\bkotlin\b/i]],
+  ['_csharp', [/\bc#\b/i, /\b\.net\b/i, /\baspnet\b/i, /\bblazor\b/i]],
+  ['_php', [/\bphp\b/i, /\bphpstan\b/i, /\bpsr[\s-]?\d+/i]],
+  ['_ruby', [/\bruby\b/i, /\brubocop\b/i, /\brspec\b/i, /\bgemfile\b/i]],
 ];
 
 // ─── Main ─────────────────────────────────────────────────────────────
