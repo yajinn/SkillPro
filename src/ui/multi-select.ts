@@ -21,25 +21,21 @@ function buildItems(skills: ScoredSkill[]): SelectionItem[] {
   const items: SelectionItem[] = [];
 
   for (const [category, groupSkills] of groups) {
-    // Add group header
-    const checkedCount = groupSkills.filter(
-      (s) => s.relevance === 'recommended',
-    ).length;
-
     items.push({
       skill: groupSkills[0]!,
       checked: false,
       isGroupHeader: true,
       groupLabel: category || 'other',
       groupCount: groupSkills.length,
-      groupChecked: checkedCount,
+      groupChecked: 0, // starts empty — user actively picks
     });
 
-    // Add skills in group
+    // All skills start UNCHECKED. User presses space to select.
+    // Pressing enter with nothing selected exits cleanly.
     for (const skill of groupSkills) {
       items.push({
         skill,
-        checked: skill.relevance === 'recommended',
+        checked: false,
         isGroupHeader: false,
       });
     }
@@ -83,9 +79,16 @@ function render(state: SelectionState): string {
     lines.push(renderLine(item, i === state.cursor));
   }
 
+  // Summary line — selected count
+  const totalSelectable = state.items.filter((x) => !x.isGroupHeader).length;
+  const selectedCount = state.items.filter((x) => !x.isGroupHeader && x.checked).length;
+
   lines.push('');
   lines.push(
-    `  ${dim(`${symbols.pointer}/${symbols.pointer} navigate  space toggle  a all  n none  enter confirm`)}`,
+    `  ${bold(`${selectedCount}/${totalSelectable} selected`)}`,
+  );
+  lines.push(
+    `  ${dim('↑↓ navigate · space select · a all · n none · enter install · q cancel')}`,
   );
 
   return lines.join('\n');
