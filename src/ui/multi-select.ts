@@ -28,15 +28,15 @@ function buildItems(skills: ScoredSkill[]): SelectionItem[] {
       isGroupHeader: true,
       groupLabel: category || 'other',
       groupCount: groupSkills.length,
-      groupChecked: 0, // starts empty — user actively picks
+      groupChecked: groupSkills.length, // all checked initially
     });
 
-    // All skills start UNCHECKED. User presses space to select.
-    // Pressing enter with nothing selected exits cleanly.
+    // All skills start CHECKED. User presses space to uncheck what they
+    // don't want. Enter installs the remaining. 'n' deselects all.
     for (const skill of groupSkills) {
       items.push({
         skill,
-        checked: false,
+        checked: true,
         isGroupHeader: false,
       });
     }
@@ -139,8 +139,13 @@ export async function multiSelect(
 
   return new Promise<ScoredSkill[]>((resolve) => {
     const stdin = process.stdin;
-    stdin.setRawMode(true);
-    stdin.resume();
+
+    // CRITICAL ORDER:
+    // 1. Enable keypress parsing BEFORE raw mode
+    // 2. Attach listener BEFORE resume
+    // 3. Raw mode + resume together at the end
+    // Otherwise: either events don't fire, or the first keypress is lost.
+    emitKeypressEvents(stdin);
     stdin.setEncoding('utf8');
 
     // Hide cursor
@@ -178,13 +183,6 @@ export async function multiSelect(
       stdin.removeAllListeners('keypress');
       process.stderr.write('\x1b[?25h'); // show cursor
     }
-
-    draw();
-
-    // Use Node's built-in keypress parser — handles fragmented escape
-    // sequences (\x1b + [ + A arriving separately) and normalizes key
-    // names across terminals. Far more reliable than raw data matching.
-    emitKeypressEvents(stdin);
 
     interface Key {
       sequence?: string;
@@ -258,6 +256,10 @@ export async function multiSelect(
       draw();
     };
 
+    // FINAL ORDER: draw first, then register listener, then raw mode + resume
+    draw();
     stdin.on('keypress', onKeypress);
+    stdin.setRawMode(true);
+    stdin.resume();
   });
 }

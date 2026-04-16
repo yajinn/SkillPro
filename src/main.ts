@@ -147,42 +147,32 @@ export async function main(): Promise<void> {
     return;
   }
 
-  // ─── Step 3: Display the list (always shown) ───────────────────────
-  printSkillList(result.recommended);
-
-  // Show alternatives with --all
-  if (showAll && result.alternatives.length > 0) {
-    process.stderr.write(`  ${dim('─── Alternatives ───')}\n\n`);
-    for (const alt of result.alternatives) {
-      const tag = sourceTag(alt);
-      process.stderr.write(
-        `    ${dim(symbols.checkboxOff)} ${dim(alt.name)} ${tag} ${dim(`(alt of ${alt.alternativeOf})`)}\n`,
-      );
-    }
-    process.stderr.write('\n');
-  }
-
-  // Exit early for dry-run — preview only
+  // ─── Dry-run: show preview list and exit ──────────────────────────
   if (args.dryRun) {
+    printSkillList(result.recommended);
+    if (showAll && result.alternatives.length > 0) {
+      process.stderr.write(`  ${dim('─── Alternatives ───')}\n\n`);
+      for (const alt of result.alternatives) {
+        const tag = sourceTag(alt);
+        process.stderr.write(
+          `    ${dim(symbols.checkboxOff)} ${dim(alt.name)} ${tag} ${dim(`(alt of ${alt.alternativeOf})`)}\n`,
+        );
+      }
+      process.stderr.write('\n');
+    }
     process.stderr.write(`  ${dim('Dry run — nothing installed. Remove --dry-run to install.')}\n\n`);
     return;
   }
 
-  // ─── Step 4: Confirm install (unless --yes) ────────────────────────
-  let toInstall = result.recommended;
-  if (!args.yes) {
-    const confirmed = await confirmInstall(result.recommended.length);
-    if (!confirmed) {
-      process.stderr.write(`  ${dim('Cancelled. Nothing installed.')}\n\n`);
+  // ─── Interactive multi-select (default) or --yes bypass ───────────
+  let toInstall: MatchedSkill[];
+  if (args.yes) {
+    toInstall = result.recommended;
+  } else {
+    toInstall = await promptSelection(result.recommended);
+    if (toInstall.length === 0) {
+      process.stderr.write(`  ${dim('Nothing selected. Exiting.')}\n\n`);
       return;
-    }
-    // --select flag: offer interactive picker instead of installing all
-    if (process.argv.includes('--select') || process.argv.includes('-s')) {
-      toInstall = await promptSelection(result.recommended);
-      if (toInstall.length === 0) {
-        process.stderr.write(`  ${dim('No skills selected. Nothing installed.')}\n\n`);
-        return;
-      }
     }
   }
 
