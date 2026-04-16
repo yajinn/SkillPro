@@ -1,6 +1,6 @@
 import { bold, orange, dim, gray, white, yellow } from './colors.js';
 
-const VERSION = '2.6.10';
+const VERSION = '2.7.0';
 const TAGLINE = 'Zero-config skill discovery for AI coding agents';
 
 /**

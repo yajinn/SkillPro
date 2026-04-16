@@ -50,6 +50,7 @@ function printHelp(): void {
 
   ${bold('Options:')}
     -y, --yes          Skip confirmation, install all recommended
+    -s, --select       Interactive multi-select (space toggle, enter confirm)
     --dry-run          Show skills without installing
     --all              Show all matches including alternatives
     -v, --verbose      Show error details
@@ -59,11 +60,11 @@ function printHelp(): void {
     --version          Show version
 
   ${bold('Examples:')}
-    ${dim('$')} npx skillpro
-    ${dim('$')} npx skillpro -y
-    ${dim('$')} npx skillpro --dry-run
-    ${dim('$')} npx skillpro --dry-run --all
-    ${dim('$')} npx skillpro -a cursor,claude-code
+    ${dim('$')} npx skillpro                ${dim('# show list, ask Y/n, install')}
+    ${dim('$')} npx skillpro -y             ${dim('# install all without asking')}
+    ${dim('$')} npx skillpro -s             ${dim('# pick skills with space/enter')}
+    ${dim('$')} npx skillpro --dry-run      ${dim('# preview only')}
+    ${dim('$')} npx skillpro --export cursor ${dim('# also export to .cursor/rules/')}
 \n`);
 }
 
@@ -146,53 +147,43 @@ export async function main(): Promise<void> {
     return;
   }
 
-  // ─── Step 3: Display ───────────────────────────────────────────────
+  // ─── Step 3: Display the list (always shown) ───────────────────────
+  printSkillList(result.recommended);
+
+  // Show alternatives with --all
+  if (showAll && result.alternatives.length > 0) {
+    process.stderr.write(`  ${dim('─── Alternatives ───')}\n\n`);
+    for (const alt of result.alternatives) {
+      const tag = sourceTag(alt);
+      process.stderr.write(
+        `    ${dim(symbols.checkboxOff)} ${dim(alt.name)} ${tag} ${dim(`(alt of ${alt.alternativeOf})`)}\n`,
+      );
+    }
+    process.stderr.write('\n');
+  }
+
+  // Exit early for dry-run — preview only
   if (args.dryRun) {
-    // Group by stack for display
-    const byStack = new Map<string, MatchedSkill[]>();
-    for (const skill of result.recommended) {
-      const stack = skill.matchedStack;
-      if (!byStack.has(stack)) byStack.set(stack, []);
-      byStack.get(stack)!.push(skill);
-    }
-
-    for (const [stack, skills] of byStack) {
-      process.stderr.write(`  ${bold(stack)} ${dim(`(${skills.length})`)}\n`);
-      for (const skill of skills) {
-        const tag = sourceTag(skill);
-        process.stderr.write(
-          `    ${orange(symbols.checkboxOn)} ${bold(skill.name)} ${tag}\n`,
-        );
-        if (skill.description) {
-          process.stderr.write(`      ${gray(skill.description.slice(0, 80))}\n`);
-        }
-      }
-      process.stderr.write('\n');
-    }
-
-    // Show alternatives if --all
-    if (showAll && result.alternatives.length > 0) {
-      process.stderr.write(`  ${dim('─── Alternatives ───')}\n\n`);
-      for (const alt of result.alternatives) {
-        const tag = sourceTag(alt);
-        process.stderr.write(
-          `    ${dim(symbols.checkboxOff)} ${dim(alt.name)} ${tag} ${dim(`(alt of ${alt.alternativeOf})`)}\n`,
-        );
-      }
-      process.stderr.write('\n');
-    }
-
+    process.stderr.write(`  ${dim('Dry run — nothing installed. Remove --dry-run to install.')}\n\n`);
     return;
   }
 
-  // ─── Step 4: Interactive multi-select (space to toggle, enter to confirm) ───
-  const toInstall = args.yes
-    ? result.recommended
-    : await promptSelection(result.recommended);
-
-  if (toInstall.length === 0) {
-    process.stderr.write(`  ${dim('No skills selected. Nothing to install.')}\n\n`);
-    return;
+  // ─── Step 4: Confirm install (unless --yes) ────────────────────────
+  let toInstall = result.recommended;
+  if (!args.yes) {
+    const confirmed = await confirmInstall(result.recommended.length);
+    if (!confirmed) {
+      process.stderr.write(`  ${dim('Cancelled. Nothing installed.')}\n\n`);
+      return;
+    }
+    // --select flag: offer interactive picker instead of installing all
+    if (process.argv.includes('--select') || process.argv.includes('-s')) {
+      toInstall = await promptSelection(result.recommended);
+      if (toInstall.length === 0) {
+        process.stderr.write(`  ${dim('No skills selected. Nothing installed.')}\n\n`);
+        return;
+      }
+    }
   }
 
   const asScoredSkills = toInstall.map((s) => ({
@@ -244,7 +235,66 @@ export async function main(): Promise<void> {
   process.stderr.write('\n');
 }
 
-// ─── Interactive Selection ─────────────────────────────────────────────
+// ─── Skill list (always-shown preview) ────────────────────────────────
+
+function printSkillList(skills: MatchedSkill[]): void {
+  const byStack = new Map<string, MatchedSkill[]>();
+  for (const skill of skills) {
+    const stack = skill.matchedStack;
+    if (!byStack.has(stack)) byStack.set(stack, []);
+    byStack.get(stack)!.push(skill);
+  }
+
+  for (const [stack, groupSkills] of byStack) {
+    process.stderr.write(`  ${bold(stack)} ${dim(`(${groupSkills.length})`)}\n`);
+    for (const skill of groupSkills) {
+      const tag = sourceTag(skill);
+      process.stderr.write(
+        `    ${orange(symbols.checkboxOn)} ${bold(skill.name)} ${tag}\n`,
+      );
+      if (skill.description) {
+        process.stderr.write(`      ${gray(skill.description.slice(0, 80))}\n`);
+      }
+    }
+    process.stderr.write('\n');
+  }
+}
+
+// ─── Y/N confirm prompt ────────────────────────────────────────────────
+
+async function confirmInstall(count: number): Promise<boolean> {
+  if (!process.stdin.isTTY) {
+    // Non-interactive: default to install (can override with --dry-run)
+    return true;
+  }
+
+  process.stderr.write(
+    `  ${bold('Install')} ${orange(String(count))} ${bold('skills?')} ${dim('[Y/n]')} `,
+  );
+
+  return new Promise<boolean>((resolve) => {
+    const stdin = process.stdin;
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+
+    const handler = (data: string): void => {
+      const ch = data[0] ?? '';
+      stdin.setRawMode(false);
+      stdin.pause();
+      stdin.removeListener('data', handler);
+      process.stderr.write(`${ch}\n\n`);
+      // Enter or Y/y → install. N/n → cancel.
+      if (ch === 'n' || ch === 'N') resolve(false);
+      else if (ch === '\x03' || ch === '\x04') resolve(false);  // Ctrl+C/D
+      else resolve(true);
+    };
+
+    stdin.on('data', handler);
+  });
+}
+
+// ─── Interactive Selection (--select flag) ─────────────────────────────
 
 async function promptSelection(matched: MatchedSkill[]): Promise<MatchedSkill[]> {
   if (!process.stdin.isTTY) return matched; // non-interactive: install all
