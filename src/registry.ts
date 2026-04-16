@@ -53,6 +53,8 @@ interface Registry {
   skill_combos?: Array<{ techs: string[]; skills: string[] }>;
   /** Universal skills for all frontend/web projects. */
   universal_frontend_skills?: string[];
+  /** Small hand-curated list replacing random universal fallback. */
+  universal_skills?: string[];
 }
 
 // ─── Load registry ────────────────────────────────────────────────────
@@ -294,6 +296,10 @@ export function matchSkills(
   }
 
   // ─── PHASE 4: REGEX-MATCHED (fill remaining slots with stack-matched skills) ───
+  // Universal bucket is restricted to a curated allow-list; any skill with
+  // only _universal stacks that isn't on the allow-list is DROPPED to avoid
+  // the 20-item universal flood.
+  const universalAllowList = new Set(registry.universal_skills ?? []);
   const raw: MatchedSkill[] = [];
   for (const [skillId, skill] of Object.entries(registry.skills)) {
     if (addedIds.has(skillId)) continue;
@@ -307,7 +313,11 @@ export function matchSkills(
         break;
       }
     }
-    if (!bestMatch && skillStacks.includes('_universal')) bestMatch = '_universal';
+    if (!bestMatch && skillStacks.includes('_universal')) {
+      // Only include universal skills that are on the curated allow-list
+      if (!universalAllowList.has(skillId)) continue;
+      bestMatch = '_universal';
+    }
     if (!bestMatch) continue;
 
     raw.push({
