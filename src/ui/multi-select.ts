@@ -44,11 +44,12 @@ function buildItems(skills: ScoredSkill[]): SelectionItem[] {
   return items;
 }
 
-function renderLine(item: SelectionItem, isActive: boolean): string {
+function renderLine(item: SelectionItem, isActive: boolean, isFirst: boolean): string {
   if (item.isGroupHeader) {
     const label = bold(item.groupLabel!);
     const count = dim(`(${item.groupChecked}/${item.groupCount})`);
-    return `\n  ${label} ${count}`;
+    // Blank line before headers, EXCEPT the first one (to avoid leading blank)
+    return isFirst ? `  ${label} ${count}` : `\n  ${label} ${count}`;
   }
 
   const pointer = isActive ? orange(symbols.pointer) : ' ';
@@ -76,7 +77,7 @@ function render(state: SelectionState): string {
 
   for (let i = 0; i < state.items.length; i++) {
     const item = state.items[i]!;
-    lines.push(renderLine(item, i === state.cursor));
+    lines.push(renderLine(item, i === state.cursor, i === 0));
   }
 
   // Summary line — selected count
@@ -145,16 +146,18 @@ export async function multiSelect(
     // Hide cursor
     process.stderr.write('\x1b[?25l');
 
-    let rendered = '';
+    let lastLineCount = 0;
 
     function draw(): void {
-      // Clear previous render
-      if (rendered) {
-        const lines = rendered.split('\n').length;
-        process.stderr.write(`\x1b[${lines}A\x1b[J`);
+      // Clear previous render by moving up exactly lastLineCount lines
+      // and clearing from there to end of screen.
+      if (lastLineCount > 0) {
+        process.stderr.write(`\x1b[${lastLineCount}A\x1b[J`);
       }
-      rendered = render(state);
+      const rendered = render(state);
       process.stderr.write(rendered + '\n');
+      // Count newlines in the output (rendered + trailing \n)
+      lastLineCount = (rendered.match(/\n/g) ?? []).length + 1;
     }
 
     function moveCursor(delta: number): void {
@@ -182,12 +185,18 @@ export async function multiSelect(
     draw();
 
     stdin.on('data', (key: string) => {
+      // Handle all common arrow-key escape sequences:
+      //   \x1b[A/B — ANSI/xterm
+      //   \x1bOA/OB — VT100 application cursor mode
+      //   k/j — vim-style
       switch (key) {
-        case '\x1b[A': // up
+        case '\x1b[A':
+        case '\x1bOA':
         case 'k':
           moveCursor(-1);
           break;
-        case '\x1b[B': // down
+        case '\x1b[B':
+        case '\x1bOB':
         case 'j':
           moveCursor(1);
           break;
