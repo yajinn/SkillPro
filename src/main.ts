@@ -42,7 +42,7 @@ function parseCliArgs(): CliArgs {
 
 function printHelp(): void {
   process.stderr.write(`
-  ${bold('Usage:')} npx skillforge [options]
+  ${bold('Usage:')} npx skillpro [options]
 
   ${bold('Options:')}
     -y, --yes          Skip confirmation, install all recommended
@@ -55,11 +55,11 @@ function printHelp(): void {
     --version          Show version
 
   ${bold('Examples:')}
-    ${dim('$')} npx skillforge
-    ${dim('$')} npx skillforge -y
-    ${dim('$')} npx skillforge --dry-run
-    ${dim('$')} npx skillforge --dry-run --all
-    ${dim('$')} npx skillforge -a cursor,claude-code
+    ${dim('$')} npx skillpro
+    ${dim('$')} npx skillpro -y
+    ${dim('$')} npx skillpro --dry-run
+    ${dim('$')} npx skillpro --dry-run --all
+    ${dim('$')} npx skillpro -a cursor,claude-code
 \n`);
 }
 

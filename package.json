@@ -1,10 +1,10 @@
 {
-  "name": "@yajinn/skillforge",
-  "version": "2.2.0",
+  "name": "skillpro",
+  "version": "2.2.1",
   "description": "Zero-config federated skill discovery for AI coding agents",
   "type": "module",
   "bin": {
-    "skillforge": "./dist/index.js"
+    "skillpro": "./dist/index.js"
   },
   "files": [
     "dist",

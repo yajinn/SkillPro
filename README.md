@@ -1,14 +1,14 @@
-# SkillForge
+# SkillPro
 
-[![npm version](https://img.shields.io/npm/v/@yajinn/skillforge.svg)](https://www.npmjs.com/package/@yajinn/skillforge)
+[![npm version](https://img.shields.io/npm/v/skillpro.svg)](https://www.npmjs.com/package/skillpro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Node](https://img.shields.io/node/v/@yajinn/skillforge)](https://www.npmjs.com/package/@yajinn/skillforge)
+[![Node](https://img.shields.io/node/v/skillpro)](https://www.npmjs.com/package/skillpro)
 
 > **Zero-config skill discovery for AI coding agents.**
 > One command detects your tech stack and suggests the best-matched skills from a 3,900+ skill registry.
 
 ```bash
-npx @yajinn/skillforge
+npx skillpro
 ```
 
 ## How It Works
@@ -27,19 +27,19 @@ No network calls at runtime. The skill registry ships with the package (3,906 sk
 
 ```bash
 # Preview recommendations without installing
-npx @yajinn/skillforge --dry-run
+npx skillpro --dry-run
 
 # Install all recommended skills (no prompt)
-npx @yajinn/skillforge -y
+npx skillpro -y
 
 # Show all matches including alternatives
-npx @yajinn/skillforge --dry-run --all
+npx skillpro --dry-run --all
 
 # Export to Cursor .mdc rules after install
-npx @yajinn/skillforge --export cursor
+npx skillpro --export cursor
 
 # Export to Codex AGENTS.md
-npx @yajinn/skillforge --export codex
+npx skillpro --export codex
 ```
 
 ## Detection
@@ -54,7 +54,7 @@ nuxt (85)      →  overrides vue
 sveltekit (85) →  overrides svelte
 ```
 
-**Build-noise filtering:** A React Native project has `react` and a `Gemfile` (CocoaPods), but its actual stack is React Native. SkillForge knows that and ignores the Ruby dependency.
+**Build-noise filtering:** A React Native project has `react` and a `Gemfile` (CocoaPods), but its actual stack is React Native. SkillPro knows that and ignores the Ruby dependency.
 
 Supported stacks: 40+ including Next.js, React Native, Expo, Vue, Svelte, Angular, Astro, Remix, Flutter, Django, FastAPI, Laravel, Rails, Spring Boot, NestJS, Supabase, Prisma, Firebase, Vercel, Cloudflare Workers, Stripe, Playwright, Vitest, Tailwind, shadcn/ui, Docker, Terraform.
 
@@ -73,7 +73,7 @@ Every project gets **at most 20 recommendations** — the best ones, not all mat
 ## Example Output
 
 ```
-  SkillForge v2.0.1
+  SkillPro v2.0.1
   Zero-config skill discovery for AI agents
 
   ✔ typescript / Next.js
@@ -100,7 +100,7 @@ Every project gets **at most 20 recommendations** — the best ones, not all mat
 ## CLI Reference
 
 ```
-Usage: npx @yajinn/skillforge [options]
+Usage: npx skillpro [options]
 
 Options:
   -y, --yes          Skip confirmation, install all recommended
