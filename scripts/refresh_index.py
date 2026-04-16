@@ -232,6 +232,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--force", action="store_true", help="ignore TTL, refresh anyway")
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--quiet", action="store_true",
+                        help="suppress adapter debug noise, print clean summary only")
     args = parser.parse_args()
 
     out = index_path()
@@ -260,16 +262,46 @@ def main() -> int:
         print(f"ERROR: cannot load sources: {exc}", file=sys.stderr)
         return 1
 
-    if args.verbose:
+    if args.quiet:
+        print("📦 Fetching skill index...", flush=True)
+    elif args.verbose:
         print(f"Refreshing index from {len(sources)} source(s)")
 
-    index = build_index(sources)
+    # In --quiet mode, suppress adapter debug noise (all their print()
+    # calls) by temporarily redirecting stdout to devnull. Our own
+    # messages go through _qprint which writes to the real stdout.
+    if args.quiet:
+        import io
+        real_stdout = sys.stdout
+        sys.stdout = io.StringIO()  # swallow adapter prints
+        try:
+            index = build_index(sources)
+        finally:
+            sys.stdout = real_stdout
+    else:
+        index = build_index(sources)
+
     if not index["skills"]:
         print("ERROR: no skills retrieved from any source", file=sys.stderr)
         return 1
 
     write_index(index, out)
-    if args.verbose:
+
+    if args.quiet:
+        # Clean single-block summary
+        total = len(index["skills"])
+        ok_sources = [s for s in index["sources"] if s["status"] == "ok"]
+        failed_sources = [s for s in index["sources"] if s["status"] == "failed"]
+        print(f"   ✓ {total} skill indexed from {len(ok_sources)} source(s)", flush=True)
+        for src in ok_sources:
+            print(f"     {src['name']}: {src.get('skill_count', 0)} skills", flush=True)
+        if failed_sources:
+            print(f"   ⚠ {len(failed_sources)} source(s) failed:", flush=True)
+            for src in failed_sources:
+                print(f"     {src['name']}: {src.get('error', 'unknown')[:80]}", flush=True)
+        if index.get("partial"):
+            print("   ⚠ Partial index — some sources could not be reached", flush=True)
+    elif args.verbose:
         print(f"Wrote {len(index['skills'])} skills to {out}")
         for src in index["sources"]:
             print(f"  {src['status']:>7}  {src['name']} ({src.get('skill_count', 0)} skills)")

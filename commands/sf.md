@@ -57,16 +57,16 @@ Resolve `SF_ROOT` at the top of every Bash call using the line above. Then:
 
 1. Parse `$ARGUMENTS`.
 2. If index is `missing`:
-   - `refresh` / `setup` → run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --verbose`, then re-read state.
+   - `refresh` / `setup` → run `python3 "$SF_ROOT/scripts/refresh_index.py" --force --quiet`, then re-read state.
    - Anything else → tell the user "index missing, run `/sf refresh`". Stop.
-3. If index is `stale` → kick off `python3 "$SF_ROOT/scripts/refresh_index.py" &` in background, continue with cached index.
+3. If index is `stale` → kick off `python3 "$SF_ROOT/scripts/refresh_index.py" --quiet &` in background, continue with cached index.
 4. Dispatch:
 
 | Arg | Action |
 |-----|--------|
 | `profile` | Dump `.claude/project-profile.json` verbatim. Stop. |
 | `sources` | List sources from the index + their fetch status. Stop. |
-| `refresh` | `refresh_index.py --force --verbose`, report outcome. Stop. |
+| `refresh` | `refresh_index.py --force --quiet`, report outcome. Stop. |
 | `add <id>` | `install_skill.py <id>`, report outcome. Stop. |
 | `remove <id>` | `rm -rf ~/.claude/skills/<id>` + drop from `selections.json`. Stop. |
 | `setup` | `scan.py "$PWD"` — runs the narrated pipeline (detect → index → score → seed) and streams status lines. THEN run `pending.py render` and print its full output as a second block so the user sees the checkbox list. Do NOT reformat scan.py output — it's already user-facing. Stop. |
