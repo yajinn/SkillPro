@@ -1,326 +1,148 @@
 # SkillForge
 
-[![CI](https://github.com/yajinn/SkillForge/actions/workflows/test.yml/badge.svg)](https://github.com/yajinn/SkillForge/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/@yajinn/skillforge.svg)](https://www.npmjs.com/package/@yajinn/skillforge)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Stars](https://img.shields.io/github/stars/yajinn/SkillForge?style=social)](https://github.com/yajinn/SkillForge/stargazers)
+[![Node](https://img.shields.io/node/v/@yajinn/skillforge)](https://www.npmjs.com/package/@yajinn/skillforge)
 
-Zero-config federated skill discovery for AI coding agents. Detects your
-project's language, framework, and characteristics, then fetches a federated
-index of skills from external sources, scores it against the profile, passes
-every candidate through an always-on audit gate, and installs only what you
-explicitly pick.
-
-> **Install once, open any project — the right skills get discovered, scored,
-> audited, and suggested automatically.**
-> No company lock-in, no language bias, no skills shipped inside the tool
-> itself.
-
-## Install
-
-### Primary: Claude Code plugin marketplace
-
-```
-/plugin marketplace add yajinn/SkillForge
-/plugin install skillforge@yajinn
-```
-
-That's it. The `/sf` slash command (use `/yajinn:sf`) is now available,
-the runtime hooks are registered automatically, and the federated index
-is fetched on first invocation.
-
-### Alternative: clone and wire manually
+> **Zero-config skill discovery for AI coding agents.**
+> One command detects your tech stack and suggests the best-matched skills from a 3,900+ skill registry.
 
 ```bash
-git clone https://github.com/yajinn/skillforge ~/.claude/plugins/skillforge
+npx @yajinn/skillforge
 ```
 
-Then either symlink `~/.claude/plugins/skillforge` into your Claude Code
-plugins directory, or copy `hooks/hooks.json` keys into your global
-`~/.claude/settings.json` (replacing `${CLAUDE_PLUGIN_ROOT}` with the
-absolute path to the clone).
-
-## Status
-
-All eight PRD phases complete. See [CHANGELOG.md](./CHANGELOG.md) for the
-1.0.0 release notes.
-
-| Phase | Deliverable | Status |
-|-------|-------------|--------|
-| 1 | Universal project detector (`hooks/detect.sh`) | ✅ Complete |
-| 2 | Relevance engine (`scripts/score.py`) + federated index schema | ✅ Complete |
-| 3 | `/sf` slash command (invoke as `/yajinn:sf`) | ✅ Complete |
-| 4 | Selection persistence (`~/.claude/skillforge/selections.json`) | ✅ Complete |
-| 5 | Federated discovery (`refresh_index.py` + source adapters) | ✅ Complete |
-| 6 | Runtime hooks v2 (profile-driven guards + auto-format) | ✅ Complete |
-| 7 | Audit gate (heuristic scanner + optional external tools) | ✅ Complete |
-| 8 | Plugin manifest, marketplace.json, CI workflow | ✅ Complete |
-| 9 | Multi-agent export (Cursor + Codex CLI; Gemini deferred) | ✅ Partial |
-
-Post-1.0 refinements landed on top of the initial commit: detector
-Flutter/Dart gap fixes (`pub_has` helper + state-management sub-framework
-detection), npm/package.json fallback for the package manager field,
-`.claude-plugin/marketplace.json` convention fix (real Claude Code schema
-with `plugins[].skills` as path lists or empty → Tree API fallback),
-heuristic tag inference from SKILL.md descriptions, community enrichment
-layer (`config/enrichment.json`) for hand-curated metadata overlays,
-parallel sub-probes in the awesome-list walker, and optional
-`GITHUB_TOKEN` auth to raise the API rate limit from 60/hr to 5000/hr.
-
-## How it works
+## How It Works
 
 ```
-project files → detect.sh → project-profile.json
-                                     │
-config/sources.json → refresh_index.py → index.json
-                                     │
-                                     ▼
-                        score.py (profile × index)
-                                     │
-                                     ▼
-                        /sf UI (recommended / optional / skip)
-                                     │
-                                user picks
-                                     │
-                                     ▼
-                        install_skill.py ──▶ audit_skill.py
-                                     │              │
-                                     │              audit passed
-                                     ▼
-                        ~/.claude/skills/<id>/
-                                     │
-                        ~/.claude/skillforge/selections.json
+┌─ Detect ──────────────┐   ┌─ Match ───────────────┐   ┌─ Install ─────────────┐
+│ package.json reader   │ → │ Registry lookup       │ → │ npx skills add <repo> │
+│ priority hierarchy    │   │ priority scoring      │   │ + CLAUDE.md updater   │
+│ build-noise filtering │   │ dedup + alternatives  │   │ + Cursor/Codex export │
+└───────────────────────┘   └───────────────────────┘   └───────────────────────┘
 ```
 
-1. **Detect** — on session start, `hooks/detect.sh` writes
-   `.claude/project-profile.json` with language, framework, package manager,
-   database, and 18 characteristic flags.
-2. **Federate** — on first run or after TTL expiry, `scripts/refresh_index.py`
-   reads `config/sources.json`, fetches every whitelisted source in parallel,
-   dedupes by skill id, and writes `~/.claude/skillforge/index.json`.
-3. **Score** — `scripts/score.py` multiplies the profile against the
-   federated index using tag matching, boost/penalize rules, and default-for
-   project-type matching.
-4. **Audit + Install** — on `/sf add <id>`, `scripts/install_skill.py`
-   fetches the skill, runs it through `scripts/audit_skill.py` (heuristic
-   scanner with optional external Tier 2), and writes it to
-   `~/.claude/skills/<id>/`.
+No network calls at runtime. The skill registry ships with the package (3,906 skills from skills.sh + Anthropic's official catalog), updated via `npm run build:registry`.
 
-SkillForge ships with **zero skills of its own**. All content comes from
-external sources. Swap in your own source list by creating
-`~/.claude/skillforge/sources.json` — it fully replaces the built-in defaults.
-
-## Commands
-
-```
-/sf                      status: detected project, index summary, selections
-/sf setup                refresh, seed pending.json with recommended pre-checked
-/sf refresh              force-refresh the index (bypass TTL)
-/sf sources              list active sources and their last fetch status
-/sf add <id>             install a single skill (one-off, bypasses pending)
-/sf skip <id>            uncheck a pending item before confirming
-/sf check <id>           re-check a previously skipped item
-/sf confirm              install every checked pending item in one batch
-/sf clear                drop pending.json without installing
-/sf remove <id>          uninstall and drop from selections
-/sf export cursor        convert installed skills to .cursor/rules/*.mdc
-/sf export codex         bundle installed skills into AGENTS.md (managed block)
-/sf audit                run the audit gate on every installed skill
-/sf profile              dump the full .claude/project-profile.json
-```
-
-Invoke any of the above as `/yajinn:sf ...` in Claude Code (the plugin
-marketplace prefix is `yajinn` from the author handle; the command
-itself is `sf`).
-
-## Security
-
-The built-in audit gate checks every skill before install against heuristic
-rules for prompt injection, environment variable exfiltration, hidden
-subprocess calls, suspicious imports, symlink escapes, and more. See
-[SECURITY.md](./SECURITY.md) for the full rule table, severity policy, and
-strict-mode configuration.
-
-Optional Tier 2 adapters wrap `snyk-agent-scan` and `skill-scanner` if they
-are on your PATH — no configuration required.
-
-## Multi-agent export
-
-Once you've curated a set of skills with `/sf confirm`, you can
-re-use them in other AI coding tools without re-picking. SkillForge reads
-from a single source of truth (`~/.claude/skills/`) and emits each target
-platform's native format.
-
-### Cursor
+## Quick Start
 
 ```bash
-cd ~/code/my-project
-/sf export cursor
+# Preview recommendations without installing
+npx @yajinn/skillforge --dry-run
+
+# Install all recommended skills (no prompt)
+npx @yajinn/skillforge -y
+
+# Show all matches including alternatives
+npx @yajinn/skillforge --dry-run --all
+
+# Export to Cursor .mdc rules after install
+npx @yajinn/skillforge --export cursor
+
+# Export to Codex AGENTS.md
+npx @yajinn/skillforge --export codex
 ```
 
-Writes one `.mdc` file per skill under `<project>/.cursor/rules/`:
+## Detection
+
+Reads `package.json` and config files, then resolves your stack via a priority hierarchy:
 
 ```
-.cursor/rules/
-├── brainstorming.mdc
-├── python-pro.mdc
-└── writing-plans.mdc
+expo (95)      →  overrides react-native, react
+react-native   →  overrides react
+nextjs (85)    →  overrides react
+nuxt (85)      →  overrides vue
+sveltekit (85) →  overrides svelte
 ```
 
-Each rule carries a `description:` field from the skill's YAML
-frontmatter and `alwaysApply: false` — Cursor activates the rule when
-the description matches your request, not on every turn. Re-run the
-command after `/sf confirm` to refresh the rule set.
+**Build-noise filtering:** A React Native project has `react` and a `Gemfile` (CocoaPods), but its actual stack is React Native. SkillForge knows that and ignores the Ruby dependency.
 
-### Codex CLI
+Supported stacks: 40+ including Next.js, React Native, Expo, Vue, Svelte, Angular, Astro, Remix, Flutter, Django, FastAPI, Laravel, Rails, Spring Boot, NestJS, Supabase, Prisma, Firebase, Vercel, Cloudflare Workers, Stripe, Playwright, Vitest, Tailwind, shadcn/ui, Docker, Terraform.
+
+## Ranking
+
+Skills are sorted by priority:
+
+1. **Anthropic official** (`anthropics/skills` repo) → +10,000
+2. **skills.sh with popularity data** → +1,000 + weekly installs
+3. **Other sources** → +100 + GitHub stars
+
+Deduplication groups skills doing the same job (e.g. `react-best-practices` and `vercel-react-best-practices`). The highest-priority one is recommended; the rest become alternatives shown with `--all`.
+
+Every project gets **at most 20 recommendations** — the best ones, not all matches.
+
+## Example Output
+
+```
+  SkillForge v2.0.1
+  Zero-config skill discovery for AI agents
+
+  ✔ typescript / Next.js
+  Next.js, React, Supabase, shadcn/ui, Tailwind CSS
+  pnpm
+
+  ✔ 20 skills (from 2805 matches)
+  187 alternatives hidden — use --all to see
+
+  react (11)
+    [x] vercel-react-best-practices  321.1K
+      React and Next.js performance optimization guide with 64 prioritized rules
+    [x] web-design-guidelines  256.7K
+      Audit UI code against Vercel's Web Interface Guidelines
+    [x] next-best-practices  64.7K
+      Comprehensive Next.js development guidelines covering file structure, RSC
+    ...
+
+  supabase (1)
+    [x] supabase-postgres-best-practices  99.7K
+      Postgres performance optimization rules across 8 priority categories
+```
+
+## CLI Reference
+
+```
+Usage: npx @yajinn/skillforge [options]
+
+Options:
+  -y, --yes          Skip confirmation, install all recommended
+  --dry-run          Show skills without installing
+  --all              Include alternative skills (unchecked)
+  -v, --verbose      Show error details
+  -a, --agent <ids>  Target specific agents: cursor, claude-code, codex
+  --export <target>  Export after install: cursor, codex
+  -h, --help         Show help
+  --version          Show version
+```
+
+## Architecture
+
+| Module | Responsibility |
+|--------|----------------|
+| `src/detect/stack.ts` | package.json reader with priority hierarchy |
+| `src/registry.ts` | Skill matching, priority scoring, dedup |
+| `src/install/skills-sh.ts` | Delegates to `npx skills add` |
+| `src/install/direct-fetch.ts` | Direct SKILL.md fetch for non-skills.sh |
+| `src/export/claude.ts` | CLAUDE.md managed section |
+| `src/export/cursor.ts` | `.cursor/rules/*.mdc` generator |
+| `src/export/codex.ts` | AGENTS.md managed section |
+| `src/config/skills-registry.json` | Pre-built skill catalog (3,906 skills) |
+
+Zero runtime dependencies. Node ≥20 only — uses built-in `fetch`, `parseArgs`, and `fs`.
+
+## Rebuilding the Registry
+
+The skill registry is regenerated periodically by fetching all skills from [skills.sh](https://skills.sh) and Anthropic's official marketplace:
 
 ```bash
-cd ~/code/my-project
-/sf export codex
+git clone https://github.com/yajinn/skillforge
+cd skillforge
+npm install
+npm run build:registry               # Fetches ~4000 skill pages (takes 3-5 min)
+npx tsx scripts/auto-map-repos.ts    # Maps repos to tech stacks
+npx tsx scripts/auto-map-skills.ts   # Per-skill stack assignment
+npm run build
+npm publish
 ```
-
-Bundles every installed skill into a single `<project>/AGENTS.md`
-inside a managed section bracketed by HTML-comment markers:
-
-```markdown
-# My project notes      ← your content
-Use 2-space indent.
-
-<!-- skillforge:start -->
-# SkillForge skills
-
-## python-pro
-_Activate when: Advanced Python patterns for production codebases_
-...
-<!-- skillforge:end -->
-
-More of your content below the markers is also preserved.
-```
-
-Any content you write **outside** the markers survives across
-re-exports. Running `export codex` a second time replaces the managed
-block in place — no duplication, no marker drift.
-
-### Degrade behavior
-
-Skills with `scripts/` or `references/` subdirectories can't travel to
-either target (both platforms use a flat markdown model). SkillForge
-emits a warning and transfers only the `SKILL.md` body. The source
-stays in `~/.claude/skills/` where it works normally inside Claude Code.
-
-### Why not Gemini?
-
-Gemini CLI's skill format isn't stable enough yet to produce a reliable
-converter. Adding Gemini support is tracked as future work.
-
-## Try it without installing
-
-```bash
-# Fetch the federated index from the default sources
-python3 scripts/refresh_index.py --force --verbose
-
-# See what the scoring engine would recommend for any project
-bash hooks/detect.sh /path/to/your/project
-python3 scripts/score.py /path/to/your/project
-
-# Audit a specific skill directory
-python3 scripts/audit_skill.py /path/to/some/skill
-
-# Install a specific skill by id (uses the fetched index)
-python3 scripts/install_skill.py <skill-id>
-```
-
-The index lives at `~/.claude/skillforge/index.json`. Installed skills land
-in `~/.claude/skills/<id>/`. Edit `~/.claude/skillforge/sources.json` to use
-a different source set.
-
-## Repository layout
-
-```
-skillforge/
-├── .claude-plugin/
-│   ├── plugin.json              # Plugin manifest (required)
-│   └── marketplace.json         # Claude Code marketplace listing
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── SECURITY.md
-├── LICENSE
-├── index.html                   # GitHub Pages landing
-├── commands/
-│   └── sf.md                   # /sf slash command (invoke as /yajinn:sf)
-├── hooks/
-│   ├── hooks.json               # Hook event registration
-│   ├── detect.sh
-│   ├── protect-infra-files.py
-│   ├── protect-dangerous-commands.py
-│   └── auto-format.sh
-├── scripts/
-│   ├── refresh_index.py         # Federated index builder
-│   ├── score.py                 # Relevance scoring
-│   ├── install_skill.py         # Fetch + audit + install
-│   ├── audit_skill.py           # Audit gate entry point
-│   ├── pending.py               # Pre-checked checkbox staging
-│   ├── convert.py               # Multi-agent exporter
-│   ├── source_adapters/
-│   │   ├── base.py
-│   │   ├── marketplace.py
-│   │   ├── awesome_list.py
-│   │   └── sitemap_aggregator.py
-│   ├── converters/
-│   │   ├── cursor.py            # → .cursor/rules/*.mdc
-│   │   └── codex.py             # → AGENTS.md managed section
-│   └── audit_rules/
-│       ├── base.py
-│       ├── patterns.py
-│       ├── heuristic.py
-│       ├── external.py
-│       └── rules_{markdown,shell,python,js,filesystem}.py
-├── config/
-│   ├── sources.json             # Built-in source whitelist
-│   └── enrichment.json          # Hand-curated metadata overlays
-├── tests/                       # 248 unit + integration + e2e tests
-│   ├── fixtures/
-│   └── test_*.py
-└── .github/
-    └── workflows/
-        └── test.yml             # CI: tests + plugin-structure checks
-```
-
-## Requirements
-
-- `bash`, `jq` (for `detect.sh` and the JSON builder path)
-- `python3` (>= 3.11, stdlib only — no pip dependencies)
-- Network access for the first `/sf refresh`. Offline afterwards
-  unless the index goes stale (default TTL: 7 days).
-
-## Running the tests
-
-```bash
-python3 -m unittest discover tests
-```
-
-248 tests, stdlib-only. The end-to-end test spins up a local `http.server`
-serving a fake marketplace and runs the full detect → refresh → score →
-install pipeline without touching the network. Separate suites cover
-audit rules (27), enrichment merge semantics (7), and the GitHub Trees
-API fallback path (19) with mocked HTTP.
-
-### Optional: raise the GitHub API rate limit
-
-`refresh_index.py` uses the public GitHub Trees API to discover skills in
-repositories that ship a `.claude-plugin/marketplace.json` without an
-explicit `skills` array (e.g. `obra/superpowers`). Unauthenticated, the
-API allows 60 requests per hour — enough for small awesome-lists but not
-for full discovery across the ecosystem. Set `GITHUB_TOKEN` in your
-environment to raise the limit to 5000/hour:
-
-```bash
-export GITHUB_TOKEN=ghp_your_token_here
-python3 scripts/refresh_index.py --force --verbose
-```
-
-Any personal access token with no scopes is sufficient.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT © Yasin Coşkun

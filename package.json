@@ -1,6 +1,6 @@
 {
-  "name": "skillforge",
-  "version": "2.0.0",
+  "name": "@yajinn/skillforge",
+  "version": "2.0.2",
   "description": "Zero-config federated skill discovery for AI coding agents",
   "type": "module",
   "bin": {
@@ -38,7 +38,10 @@
     "type": "git",
     "url": "https://github.com/yajinn/skillforge"
   },
-  "homepage": "https://skillforge.dev",
+  "homepage": "https://github.com/yajinn/skillforge",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "typescript": "^5.5.0",
     "vitest": "^3.0.0",
