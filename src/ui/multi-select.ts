@@ -44,12 +44,11 @@ function buildItems(skills: ScoredSkill[]): SelectionItem[] {
   return items;
 }
 
-function renderLine(item: SelectionItem, isActive: boolean, isFirst: boolean): string {
+function renderLine(item: SelectionItem, isActive: boolean): string {
   if (item.isGroupHeader) {
     const label = bold(item.groupLabel!);
     const count = dim(`(${item.groupChecked}/${item.groupCount})`);
-    // Blank line before headers, EXCEPT the first one (to avoid leading blank)
-    return isFirst ? `  ${label} ${count}` : `\n  ${label} ${count}`;
+    return `\n  ${label} ${count}`;
   }
 
   const pointer = isActive ? orange(symbols.pointer) : ' ';
@@ -77,7 +76,7 @@ function render(state: SelectionState): string {
 
   for (let i = 0; i < state.items.length; i++) {
     const item = state.items[i]!;
-    lines.push(renderLine(item, i === state.cursor, i === 0));
+    lines.push(renderLine(item, i === state.cursor));
   }
 
   // Summary line — selected count
@@ -146,18 +145,15 @@ export async function multiSelect(
     // Hide cursor
     process.stderr.write('\x1b[?25l');
 
-    let lastLineCount = 0;
+    let rendered = '';
 
     function draw(): void {
-      // Clear previous render by moving up exactly lastLineCount lines
-      // and clearing from there to end of screen.
-      if (lastLineCount > 0) {
-        process.stderr.write(`\x1b[${lastLineCount}A\x1b[J`);
+      if (rendered) {
+        const lines = rendered.split('\n').length;
+        process.stderr.write(`\x1b[${lines}A\x1b[J`);
       }
-      const rendered = render(state);
+      rendered = render(state);
       process.stderr.write(rendered + '\n');
-      // Count newlines in the output (rendered + trailing \n)
-      lastLineCount = (rendered.match(/\n/g) ?? []).length + 1;
     }
 
     function moveCursor(delta: number): void {
