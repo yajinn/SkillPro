@@ -53,8 +53,6 @@ interface Registry {
   skill_combos?: Array<{ techs: string[]; skills: string[] }>;
   /** Universal skills for all frontend/web projects. */
   universal_frontend_skills?: string[];
-  /** Universal skills shown on EVERY project (small curated list). */
-  universal_skills?: string[];
 }
 
 // ─── Load registry ────────────────────────────────────────────────────
@@ -295,12 +293,6 @@ export function matchSkills(
     for (const id of frontendSkills) addSkill(id, 'frontend');
   }
 
-  // ─── PHASE 3.5: UNIVERSAL SKILLS (every project gets these) ───
-  // Hand-curated short list of cross-cutting skills (brainstorming, etc.).
-  // Keeps output useful without flooding with irrelevant matches.
-  const universalSkillIds = registry.universal_skills ?? [];
-  for (const id of universalSkillIds) addSkill(id, 'universal');
-
   // ─── PHASE 4: REGEX-MATCHED (fill remaining slots with stack-matched skills) ───
   const raw: MatchedSkill[] = [];
   for (const [skillId, skill] of Object.entries(registry.skills)) {
@@ -341,10 +333,8 @@ export function matchSkills(
     afterLangCap.push(skill);
   }
 
-  // Merge: curated (includes Phase 3.5 universal_skills) + regex-matched
-  // The auto-discovered "_universal" bucket from afterLangCap is DROPPED —
-  // only the hand-curated universal_skills from Phase 3.5 survive.
-  const allMatched = [...curated, ...afterLangCap.filter((s) => s.matchedStack !== 'universal')];
+  // Merge: curated first, then regex-matched
+  const allMatched = [...curated, ...afterLangCap];
   const specific = allMatched.filter((s) => s.matchedStack !== 'universal');
   const universal = allMatched.filter((s) => s.matchedStack === 'universal');
 
@@ -364,15 +354,25 @@ export function matchSkills(
     }
   }
 
-  // Phase 5: Universal are already curated (4 items), pass through without dedup
-  const universalPrimaries: MatchedSkill[] = [...universal];
+  // Phase 5: Add top universal (deduped)
+  const universalGroups = groupSimilar(universal);
+  const universalPrimaries: MatchedSkill[] = [];
+  for (const group of universalGroups.values()) {
+    const [primary, ...alts] = group;
+    if (!primary) continue;
+    universalPrimaries.push(primary);
+    for (const alt of alts) {
+      alt.isAlternative = true;
+      alt.alternativeOf = primary.id;
+      alternatives.push(alt);
+    }
+  }
 
-  // Phase 6: Independent caps for specific and universal.
-  // Universal is a small hand-curated list (find-skills, brainstorming,
-  // agent-tools, critique) — never auto-expands to 20.
-  // Specific gets up to 20 slots.
-  const cappedSpecific = recommended.slice(0, 20);
-  const cappedUniversal = universalPrimaries.slice(0, 4);
+  // Phase 6: Cap at 20 total (specific first, then fill with universal)
+  const MAX_RECOMMENDATIONS = 20;
+  const cappedSpecific = recommended.slice(0, MAX_RECOMMENDATIONS);
+  const remaining = MAX_RECOMMENDATIONS - cappedSpecific.length;
+  const cappedUniversal = remaining > 0 ? universalPrimaries.slice(0, remaining) : [];
 
   return {
     recommended: [...cappedSpecific, ...cappedUniversal],
