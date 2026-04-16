@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Hand-curated scoring metadata for known real-world skills. Merged into inferred SkillEntry data after heuristic tag inference runs. Users can override by creating ~/.claude/skillforge/enrichment.json — the user file FULLY REPLACES this one, it does not merge.",
+  "description": "Hand-curated scoring metadata for known real-world skills. Merged into inferred SkillEntry data after heuristic tag inference runs. Users can override by creating ~/.claude/skillpro/enrichment.json — the user file FULLY REPLACES this one, it does not merge.",
   "enrichment": {
     "xlsx": {
       "category": "docs/office",

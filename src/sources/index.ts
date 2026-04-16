@@ -3,7 +3,7 @@
  * adapters in parallel, deduplicates results, returns FederatedIndex.
  *
  * Reads bundled src/config/sources.json, merges with user override
- * from ~/.config/skillforge/sources.json (if exists, fully replaces),
+ * from ~/.config/skillpro/sources.json (if exists, fully replaces),
  * and merges with CLI --sources argument (appended as marketplace type).
  */
 
@@ -33,7 +33,7 @@ function loadSourcesConfig(): SourceConfig[] {
   const userPath = join(
     homedir(),
     '.config',
-    'skillforge',
+    'skillpro',
     'sources.json',
   );
 

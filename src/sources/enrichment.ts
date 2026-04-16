@@ -15,7 +15,7 @@
  *   - match_libraries, boost_libraries: enrichment replaces if present.
  *
  * Lookup order (first hit wins):
- *   1. ~/.config/skillforge/enrichment.json (user override, full replace)
+ *   1. ~/.config/skillpro/enrichment.json (user override, full replace)
  *   2. Bundled src/config/enrichment.json
  *   3. No enrichment
  */
@@ -36,7 +36,7 @@ export function loadEnrichment(): Record<string, Partial<SkillEntry>> {
   }
 
   const candidates = [
-    join(homedir(), '.config', 'skillforge', 'enrichment.json'),
+    join(homedir(), '.config', 'skillpro', 'enrichment.json'),
     join(import.meta.dirname, '..', 'config', 'enrichment.json'),
   ];
 

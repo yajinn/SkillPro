@@ -1,6 +1,6 @@
-# SkillForge Security Policy
+# SkillPro Security Policy
 
-This document describes SkillForge's threat model, what the built-in
+This document describes SkillPro's threat model, what the built-in
 audit gate checks, how to configure strict mode, how to review a skill
 manually, and how to report a vulnerability.
 
@@ -89,7 +89,7 @@ the skill directory and applies per-file-type rules:
 ### Tier 2 — external CLI tools (optional)
 
 If the binary is on PATH, it runs in addition to Tier 1. Neither is
-required for SkillForge to function.
+required for SkillPro to function.
 
 - `snyk-agent-scan` — Snyk's official CLI scanner for agent skills.
 - `skill-scanner` — Cisco's open-source scanner.
@@ -112,7 +112,7 @@ privileged access. One critical finding is one too many.
 ## Strict mode: `require_audit: true`
 
 Each source in `config/sources.json` (or your override at
-`~/.claude/skillforge/sources.json`) can set `require_audit: true`.
+`~/.claude/skillpro/sources.json`) can set `require_audit: true`.
 When the flag is enabled, the install pipeline also aborts on an
 `unavailable` audit result — i.e. if the scanner could not produce a
 verdict. Use strict mode for:
@@ -149,13 +149,13 @@ subset of it but is not a replacement for a careful read.
 
 ## Reporting a vulnerability
 
-If you discover a vulnerability in SkillForge itself (the detector,
+If you discover a vulnerability in SkillPro itself (the detector,
 the scorer, the audit gate, the runtime hooks):
 
 1. **Do not open a public issue.**
 2. Email the maintainer with a description and reproduction steps.
 3. Alternatively, file a private GitHub security advisory on the
-   SkillForge repository.
+   SkillPro repository.
 
 We aim to acknowledge reports within 72 hours and provide a status
 update within 7 days.
@@ -167,7 +167,7 @@ If a skill in a public marketplace or awesome-list is malicious:
 1. Report it to the source maintainer first (repo issue, upstream
    moderation channel).
 2. If the source is unresponsive and the skill poses active risk,
-   email the SkillForge maintainer so we can consider removing the
+   email the SkillPro maintainer so we can consider removing the
    source from the built-in default whitelist in `config/sources.json`.
 
 ## Limitations
@@ -188,7 +188,7 @@ For high-stakes environments, combine the scanner with:
 
 1. `require_audit: true` on every source.
 2. Manual review using the checklist above.
-3. Running SkillForge in a separate user account with restricted
+3. Running SkillPro in a separate user account with restricted
    filesystem access.
 4. Regularly running `/sf audit` on already-installed skills
    to catch rules introduced after the install.

@@ -1,7 +1,7 @@
 /**
  * Track installed skills in a persistent selections file.
  *
- * Location: ~/.config/skillforge/selections.json
+ * Location: ~/.config/skillpro/selections.json
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -10,7 +10,7 @@ import { homedir } from 'node:os';
 import type { SelectionsFile, SelectionEntry } from '../types.js';
 
 function selectionsPath(): string {
-  return join(homedir(), '.config', 'skillforge', 'selections.json');
+  return join(homedir(), '.config', 'skillpro', 'selections.json');
 }
 
 /**

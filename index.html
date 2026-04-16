@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SkillForge — Zero-config skill discovery for AI coding agents</title>
-  <meta name="description" content="Detect project → score against a federated index → audit → install. SkillForge ships no skills of its own. Works with Claude Code, Cursor, and Codex CLI.">
-  <meta property="og:title" content="SkillForge">
+  <title>SkillPro — Zero-config skill discovery for AI coding agents</title>
+  <meta name="description" content="Detect project → score against a federated index → audit → install. SkillPro ships no skills of its own. Works with Claude Code, Cursor, and Codex CLI.">
+  <meta property="og:title" content="SkillPro">
   <meta property="og:description" content="Zero-config skill discovery for AI coding agents. Federated, audited, multi-platform.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://github.com/yajinn/SkillForge">
+  <meta property="og:url" content="https://github.com/yajinn/SkillPro">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230F172A'/%3E%3Ctext x='4' y='22' font-family='monospace' font-weight='700' font-size='20' fill='%23F97316'%3E%26gt;_%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -124,7 +124,7 @@
     </div>
     <div class="hidden md:flex items-center gap-4 text-fog">
       <span>$ uname</span>
-      <span class="text-chalk">skillforge/1.0</span>
+      <span class="text-chalk">skillpro/1.0</span>
     </div>
   </div>
 </div>
@@ -143,7 +143,7 @@
       <a href="#export" class="hover:text-run transition-colors cursor-pointer">EXPORT</a>
       <a href="#install" class="hover:text-run transition-colors cursor-pointer">INSTALL</a>
     </div>
-    <a href="https://github.com/yajinn/SkillForge" target="_blank" rel="noopener"
+    <a href="https://github.com/yajinn/SkillPro" target="_blank" rel="noopener"
        class="brutal bg-chalk text-ink font-bold text-sm px-4 py-2 cursor-pointer">
       GITHUB &rarr;
     </a>
@@ -178,7 +178,7 @@
 
     <p class="mt-8 max-w-2xl text-fog text-base md:text-lg leading-relaxed">
       Detect your project. Score it against a federated index. Audit every candidate.
-      Install only what <span class="text-chalk">you</span> pick. SkillForge ships with
+      Install only what <span class="text-chalk">you</span> pick. SkillPro ships with
       <span class="text-run font-bold">zero skills of its own</span> &mdash; all content is
       discovered, verified, and curated at runtime.
     </p>
@@ -198,21 +198,21 @@
           <div class="flex items-center gap-3">
             <span class="text-fog text-xs select-none w-4 text-right">1</span>
             <span class="text-run font-bold select-none">$</span>
-            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillForge</code>
-            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillForge')"
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillPro</code>
+            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillPro')"
                     class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0"
                     aria-label="Copy marketplace add command">COPY</button>
           </div>
           <div class="flex items-center gap-3">
             <span class="text-fog text-xs select-none w-4 text-right">2</span>
             <span class="text-run font-bold select-none">$</span>
-            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillforge@yajinn</code>
-            <button onclick="copyLine(this, '/plugin install skillforge@yajinn')"
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillpro@yajinn</code>
+            <button onclick="copyLine(this, '/plugin install skillpro@yajinn')"
                     class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0"
                     aria-label="Copy install command">COPY</button>
           </div>
           <div class="text-xs text-fog pt-2 border-t-2 border-iron mt-2">
-            Then invoke as <code class="text-chalk">/skillforge:sf</code> in any project.
+            Then invoke as <code class="text-chalk">/skillpro:sf</code> in any project.
           </div>
         </div>
       </div>
@@ -220,7 +220,7 @@
 
     <div class="mt-10 flex flex-wrap items-center gap-4">
       <a href="#how" class="brutal bg-run text-ink font-bold px-6 py-3 cursor-pointer">HOW IT WORKS &rarr;</a>
-      <a href="https://github.com/yajinn/SkillForge" target="_blank" rel="noopener"
+      <a href="https://github.com/yajinn/SkillPro" target="_blank" rel="noopener"
          class="brutal-cold bg-slab text-chalk font-bold px-6 py-3 cursor-pointer">
         SOURCE ON GITHUB
       </a>
@@ -273,7 +273,7 @@
           <code class="text-chalk">refresh_index.py</code> hits every whitelisted source in
           parallel &mdash; marketplace.json, awesome-list walks, sitemap aggregators.
         </p>
-        <div class="text-[10px] font-bold text-hot tracking-wider">&rarr; ~/.claude/skillforge/index.json</div>
+        <div class="text-[10px] font-bold text-hot tracking-wider">&rarr; ~/.claude/skillpro/index.json</div>
       </div>
 
       <div class="brutal bg-slab p-6">
@@ -428,7 +428,7 @@
             <div class="text-xs text-run tracking-widest mb-2">04 &middot; DEEP INTROSPECTION</div>
             <h3 class="text-2xl font-bold mb-3">~140 libraries, 10 languages</h3>
             <p class="text-fog leading-relaxed">
-              Not just "it's a Python project" &mdash; SkillForge walks manifests and surfaces canonical library IDs.
+              Not just "it's a Python project" &mdash; SkillPro walks manifests and surfaces canonical library IDs.
               TanStack Query, Zustand, Drizzle, FastAPI, Pydantic, Flutter Bloc, Axum, Tokio, EF Core &mdash;
               all the way down. Skills can anchor to specific libraries.
             </p>
@@ -548,11 +548,11 @@
 <span class="text-fog"># My project notes</span>
 <span class="text-fog">Use 2-space indent.</span>
 
-<span class="text-chalk">&lt;!-- skillforge:start --&gt;</span>
+<span class="text-chalk">&lt;!-- skillpro:start --&gt;</span>
 <span class="text-chalk">## python-pro</span>
 <span class="text-fog">_Activate when: Advanced Python..._</span>
 <span class="text-chalk">...</span>
-<span class="text-chalk">&lt;!-- skillforge:end --&gt;</span></pre>
+<span class="text-chalk">&lt;!-- skillpro:end --&gt;</span></pre>
       </div>
     </div>
   </div>
@@ -594,7 +594,7 @@
       SKILLSET.
     </h2>
     <p class="text-fog text-base md:text-lg max-w-2xl mx-auto mb-10">
-      Open any project. Run <code class="text-chalk">/skillforge:sf setup</code>. Review the pre-checked list. Confirm.
+      Open any project. Run <code class="text-chalk">/skillpro:sf setup</code>. Review the pre-checked list. Confirm.
       That's the whole workflow.
     </p>
 
@@ -604,15 +604,15 @@
           <div class="flex items-center gap-3">
             <span class="text-fog text-xs select-none w-4 text-right">1</span>
             <span class="text-run font-bold select-none">$</span>
-            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillForge</code>
-            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillForge')"
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin marketplace add yajinn/SkillPro</code>
+            <button onclick="copyLine(this, '/plugin marketplace add yajinn/SkillPro')"
                     class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0">COPY</button>
           </div>
           <div class="flex items-center gap-3">
             <span class="text-fog text-xs select-none w-4 text-right">2</span>
             <span class="text-run font-bold select-none">$</span>
-            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillforge@yajinn</code>
-            <button onclick="copyLine(this, '/plugin install skillforge@yajinn')"
+            <code class="flex-1 text-chalk text-sm md:text-base break-all">/plugin install skillpro@yajinn</code>
+            <button onclick="copyLine(this, '/plugin install skillpro@yajinn')"
                     class="brutal-alt bg-ink text-chalk font-bold text-xs px-3 py-1 cursor-pointer shrink-0">COPY</button>
           </div>
         </div>
@@ -620,11 +620,11 @@
     </div>
 
     <div class="flex flex-wrap gap-4 justify-center">
-      <a href="https://github.com/yajinn/SkillForge" target="_blank" rel="noopener"
+      <a href="https://github.com/yajinn/SkillPro" target="_blank" rel="noopener"
          class="brutal bg-run text-ink font-bold px-8 py-4 cursor-pointer">
         GITHUB &rarr;
       </a>
-      <a href="https://github.com/yajinn/SkillForge/blob/main/README.md" target="_blank" rel="noopener"
+      <a href="https://github.com/yajinn/SkillPro/blob/main/README.md" target="_blank" rel="noopener"
          class="brutal-cold bg-slab text-chalk font-bold px-8 py-4 cursor-pointer">
         READ THE DOCS
       </a>
@@ -643,17 +643,17 @@
       <div>
         <div class="text-xs text-fog tracking-widest mb-3">DOCS</div>
         <ul class="space-y-2 text-sm">
-          <li><a href="https://github.com/yajinn/SkillForge/blob/main/README.md" class="hover:text-run cursor-pointer">README</a></li>
-          <li><a href="https://github.com/yajinn/SkillForge/blob/main/CHANGELOG.md" class="hover:text-run cursor-pointer">CHANGELOG</a></li>
-          <li><a href="https://github.com/yajinn/SkillForge/blob/main/SECURITY.md" class="hover:text-run cursor-pointer">SECURITY</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/blob/main/README.md" class="hover:text-run cursor-pointer">README</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/blob/main/CHANGELOG.md" class="hover:text-run cursor-pointer">CHANGELOG</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/blob/main/SECURITY.md" class="hover:text-run cursor-pointer">SECURITY</a></li>
         </ul>
       </div>
       <div>
         <div class="text-xs text-fog tracking-widest mb-3">COMMUNITY</div>
         <ul class="space-y-2 text-sm">
-          <li><a href="https://github.com/yajinn/SkillForge/issues" class="hover:text-run cursor-pointer">ISSUES</a></li>
-          <li><a href="https://github.com/yajinn/SkillForge/discussions" class="hover:text-run cursor-pointer">DISCUSSIONS</a></li>
-          <li><a href="https://github.com/yajinn/SkillForge/blob/main/CONTRIBUTING.md" class="hover:text-run cursor-pointer">CONTRIBUTING</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/issues" class="hover:text-run cursor-pointer">ISSUES</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/discussions" class="hover:text-run cursor-pointer">DISCUSSIONS</a></li>
+          <li><a href="https://github.com/yajinn/SkillPro/blob/main/CONTRIBUTING.md" class="hover:text-run cursor-pointer">CONTRIBUTING</a></li>
         </ul>
       </div>
       <div>

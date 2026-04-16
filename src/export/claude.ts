@@ -4,10 +4,10 @@
  * Same marker pattern and merge logic as the Codex exporter,
  * but targets CLAUDE.md instead of AGENTS.md.
  *
- *   <!-- skillforge:start -->
- *   # SkillForge skills
+ *   <!-- skillpro:start -->
+ *   # SkillPro skills
  *   ... generated content ...
- *   <!-- skillforge:end -->
+ *   <!-- skillpro:end -->
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -15,8 +15,8 @@ import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import type { ScoredSkill } from '../types.js';
 
-const START_MARKER = '<!-- skillforge:start -->';
-const END_MARKER = '<!-- skillforge:end -->';
+const START_MARKER = '<!-- skillpro:start -->';
+const END_MARKER = '<!-- skillpro:end -->';
 
 /**
  * Regex to match YAML frontmatter at the start of a file.
@@ -100,7 +100,7 @@ function renderManagedSection(skills: ScoredSkill[]): string {
   if (sections.length === 0) {
     inner = '_No skills installed. Run `/sf confirm` first._\n';
   } else {
-    inner = '# SkillForge skills\n\n' + sections.join('\n---\n\n');
+    inner = '# SkillPro skills\n\n' + sections.join('\n---\n\n');
   }
 
   return `${START_MARKER}\n${inner}\n${END_MARKER}`;

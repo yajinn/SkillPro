@@ -1,6 +1,6 @@
 import { bold, cyan, dim, gray } from './colors.js';
 
-const VERSION = '2.2.1';
+const VERSION = '2.3.0';
 
 export function printBanner(): void {
   if (!process.stderr.isTTY) return;

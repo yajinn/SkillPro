@@ -1,5 +1,5 @@
 /**
- * SkillForge — Relevance Scoring Engine
+ * SkillPro — Relevance Scoring Engine
  *
  * Port of scripts/score.py's score_skill() and classify() functions.
  * Computes a relevance score for each skill against a project profile.

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to SkillForge are documented here. The format follows
+All notable changes to SkillPro are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -30,7 +30,7 @@ Initial release. All eight PRD phases complete.
 - **Install pipeline** (`scripts/install_skill.py`) — SHA256 tamper
   check, audit gate integration, staging directory with atomic
   replace, persistent selections at
-  `~/.claude/skillforge/selections.json`.
+  `~/.claude/skillpro/selections.json`.
 - **Audit gate** (`scripts/audit_skill.py` + `scripts/audit_rules/`) —
   always-on heuristic scanner with Python stdlib rule families for
   markdown, shell, Python (AST-based), JavaScript, and filesystem
@@ -41,7 +41,7 @@ Initial release. All eight PRD phases complete.
   (`protect-infra-files.py`), universal dangerous command blocklist
   (`protect-dangerous-commands.py`), language-aware auto-format
   (`auto-format.sh`). Wired via `hooks/hooks.json`.
-- **`/skillforge` slash command** with subcommands: `status`, `setup`,
+- **`/skillpro` slash command** with subcommands: `status`, `setup`,
   `refresh`, `sources`, `add <id>`, `remove <id>`, `audit`, `profile`.
   Stale-while-revalidate cache behavior built into the command body.
 - **SECURITY.md** — threat model, rule tables, severity policy,
@@ -60,5 +60,5 @@ Initial release. All eight PRD phases complete.
   shape; upstream schema confirmation pending.
 - Awesome-list adapter probes up to 20 sub-URLs per source to avoid
   rate-limiting; large lists get truncated.
-- `/skillforge audit --verbose` output format is markdown table only;
+- `/skillpro audit --verbose` output format is markdown table only;
   JSON output via the direct CLI (`python3 scripts/audit_skill.py`).

@@ -4,7 +4,7 @@
  * Used to cache GitHub Trees API results so that subsequent refreshes
  * within the TTL window skip the network call entirely.
  *
- * Cache location: ~/.config/skillforge/tree-cache.json
+ * Cache location: ~/.config/skillpro/tree-cache.json
  * TTL: 24 hours
  * Format: { version: 1, entries: { [key]: { data, timestamp } } }
  */
@@ -27,7 +27,7 @@ interface CacheDoc {
 }
 
 function cachePath(): string {
-  return join(homedir(), '.config', 'skillforge', 'tree-cache.json');
+  return join(homedir(), '.config', 'skillpro', 'tree-cache.json');
 }
 
 function loadCache(): CacheDoc {

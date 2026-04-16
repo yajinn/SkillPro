@@ -133,8 +133,8 @@ Zero runtime dependencies. Node ≥20 only — uses built-in `fetch`, `parseArgs
 The skill registry is regenerated periodically by fetching all skills from [skills.sh](https://skills.sh) and Anthropic's official marketplace:
 
 ```bash
-git clone https://github.com/yajinn/skillforge
-cd skillforge
+git clone https://github.com/yajinn/skillpro
+cd skillpro
 npm install
 npm run build:registry               # Fetches ~4000 skill pages (takes 3-5 min)
 npx tsx scripts/auto-map-repos.ts    # Maps repos to tech stacks

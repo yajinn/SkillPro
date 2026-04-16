@@ -24,7 +24,7 @@ const FRONTMATTER_RE = /^\s*---\s*\n([\s\S]*?)\n---\s*\n?/;
  * Returns [frontmatter dict, body without frontmatter].
  *
  * Minimal parser: only handles `key: value` pairs on single lines.
- * Matches the parser SkillForge uses elsewhere.
+ * Matches the parser SkillPro uses elsewhere.
  */
 function parseFrontmatter(body: string): [Record<string, string>, string] {
   const match = FRONTMATTER_RE.exec(body);

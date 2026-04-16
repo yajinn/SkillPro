@@ -1,5 +1,5 @@
 /**
- * Presentation-layer clustering for SkillForge recommendations.
+ * Presentation-layer clustering for SkillPro recommendations.
  *
  * Port of scripts/clustering.py.
  *

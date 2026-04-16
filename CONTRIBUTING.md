@@ -1,6 +1,6 @@
-# Contributing to SkillForge
+# Contributing to SkillPro
 
-Thanks for your interest. SkillForge is a small tool with a clear
+Thanks for your interest. SkillPro is a small tool with a clear
 scope, so contributions should stay focused on one of four areas:
 
 1. **New source adapter** — support a new kind of external skill
@@ -19,8 +19,8 @@ architecture overview and the design boundary.
 ## Development setup
 
 ```bash
-git clone https://github.com/yajinn/skillforge
-cd skillforge
+git clone https://github.com/yajinn/skillpro
+cd skillpro
 python3 -m unittest discover tests
 ```
 
@@ -37,7 +37,7 @@ python3 scripts/audit_skill.py scripts/audit_rules
 ```
 
 Generated outputs land in `.claude/project-profile.json` (per project)
-and `~/.claude/skillforge/index.json` (global).
+and `~/.claude/skillpro/index.json` (global).
 
 ## Adding a source adapter
 
@@ -134,7 +134,7 @@ each language and framework.
 - **Tests**: every PR must pass `python3 -m unittest discover tests`.
   CI enforces this.
 - **No new pip dependencies.** The stdlib-only constraint is a
-  deliberate design choice — it keeps SkillForge installable on any
+  deliberate design choice — it keeps SkillPro installable on any
   machine that already has Python 3. If you believe a dependency is
   unavoidable, open an issue first and explain why.
 
@@ -151,7 +151,7 @@ each language and framework.
 Include:
 
 - Your OS and Python version.
-- The SkillForge version (`python3 scripts/refresh_index.py --version`
+- The SkillPro version (`python3 scripts/refresh_index.py --version`
   once implemented, or the git SHA).
 - The output of the failing command (stdout + stderr).
 - The project profile (if the bug is detector-related): paste

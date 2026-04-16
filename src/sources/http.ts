@@ -8,7 +8,7 @@
 
 export async function httpGet(url: string): Promise<string> {
   const headers: Record<string, string> = {
-    'User-Agent': 'SkillForge/2.0',
+    'User-Agent': 'SkillPro/2.0',
   };
 
   const token = process.env.GITHUB_TOKEN;

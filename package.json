@@ -1,6 +1,6 @@
 {
   "name": "skillpro",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Zero-config federated skill discovery for AI coding agents",
   "type": "module",
   "bin": {
@@ -36,9 +36,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yajinn/skillforge"
+    "url": "https://github.com/yajinn/skillpro"
   },
-  "homepage": "https://github.com/yajinn/skillforge",
+  "homepage": "https://github.com/yajinn/skillpro",
   "publishConfig": {
     "access": "public"
   },
