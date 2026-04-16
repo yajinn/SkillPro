@@ -62,18 +62,95 @@ Supported stacks: 40+ including Next.js, React Native, Expo, Vue, Svelte, Angula
 
 Skills are sorted by priority:
 
-1. **Anthropic official** (`anthropics/skills` repo) → +10,000
-2. **skills.sh with popularity data** → +1,000 + weekly installs
-3. **Other sources** → +100 + GitHub stars
+1. **Curated map** (hand-picked per stack, AutoSkills-inspired) → +1000 boost
+2. **Anthropic official** (`anthropics/skills` repo) → +10,000
+3. **skills.sh with popularity data** → +1,000 + weekly installs
+4. **Other sources** → +100 + GitHub stars
 
 Deduplication groups skills doing the same job (e.g. `react-best-practices` and `vercel-react-best-practices`). The highest-priority one is recommended; the rest become alternatives shown with `--all`.
 
 Every project gets **at most 20 recommendations** — the best ones, not all matches.
 
+## Monorepo Support
+
+SkillPro detects npm/yarn/pnpm workspaces, lerna, and turborepo. Run it at your monorepo root:
+
+```bash
+$ npx skillpro
+  ✔ javascript / Expo
+  Expo, React Native, Next.js, NestJS, Prisma, Stripe, React, Tailwind CSS
+  npm · 5 workspaces
+    ↳ api     NestJS, Prisma, Stripe
+    ↳ mobile  Expo, React Native, React
+    ↳ web     Next.js, React, Tailwind CSS
+    ↳ @repo/db Prisma
+    ↳ @repo/ui React, Tailwind CSS
+```
+
+Skills are aggregated from ALL workspaces (union of stacks). Per-workspace breakdown shows which workspace contributes which tech.
+
+Supported monorepo formats:
+
+| System | Detection |
+|--------|-----------|
+| npm/yarn workspaces | `package.json` → `workspaces` field |
+| pnpm | `pnpm-workspace.yaml` |
+| Lerna | `lerna.json` → `packages` field |
+| Turborepo | `turbo.json` + workspaces field |
+| Nx | `package.json` workspaces field |
+
+## Auto-Update System
+
+SkillPro keeps itself fresh via three auto-update layers, all opt-in via config:
+
+```
+┌─ Layer 1 ─────────┐  ┌─ Layer 2 ─────────┐  ┌─ Layer 3 ─────────┐
+│ CLI self-update   │  │ Registry refresh  │  │ Skill updates     │
+│ 24h cache         │  │ 6h cache, ETag    │  │ Every run         │
+│ Yellow banner     │  │ Silent            │  │ Notification      │
+└───────────────────┘  └───────────────────┘  └───────────────────┘
+```
+
+**Layer 1 — CLI self-update:** Checks `registry.npmjs.org/skillpro/latest` daily. Shows banner if newer version exists. Non-blocking.
+
+**Layer 2 — Registry refresh:** Fetches `skills-registry.json` overlay from GitHub raw with ETag. If `304 Not Modified` → use local cache. Network failure → fall back to bundled. New skills added to skills.sh appear without requiring `npm install`.
+
+**Layer 3 — Skill updates:** Compares installed skill SHAs against registry. Flags outdated skills and breaking changes. User runs `npx skillpro --update` to apply.
+
+**Config at `~/.config/skillpro/config.json`:**
+
+```json
+{
+  "update": {
+    "check_cli": true,
+    "check_registry": true,
+    "check_skills": true,
+    "auto_apply_skills": false,
+    "skip_breaking_changes": true
+  },
+  "notify": {
+    "breaking_changes": "always"
+  },
+  "telemetry": false
+}
+```
+
+**Cache files at `~/.config/skillpro/`:**
+
+| File | Purpose | TTL |
+|------|---------|-----|
+| `config.json` | User preferences | Manual |
+| `version-check.json` | CLI version check | 24h |
+| `registry-overlay.json` | Fresh registry data | 6h |
+| `registry-cache-meta.json` | ETag + timestamp | — |
+| `selections.json` | Installed skills | Manual |
+
+Privacy-first: no telemetry by default. Network calls are minimized via ETag (304 Not Modified in ~5ms). Works fully offline with bundled fallback.
+
 ## Example Output
 
 ```
-  SkillPro v2.0.1
+  SkillPro v2.6.0
   Zero-config skill discovery for AI agents
 
   ✔ typescript / Next.js
@@ -106,6 +183,7 @@ Options:
   -y, --yes          Skip confirmation, install all recommended
   --dry-run          Show skills without installing
   --all              Include alternative skills (unchecked)
+  --update           Update installed skills to latest versions
   -v, --verbose      Show error details
   -a, --agent <ids>  Target specific agents: cursor, claude-code, codex
   --export <target>  Export after install: cursor, codex
@@ -113,18 +191,43 @@ Options:
   --version          Show version
 ```
 
+### Example: fresh run with auto-update
+
+```
+  SkillPro v2.6.0
+  Zero-config skill discovery for AI agents
+
+  ✔ typescript / Next.js
+  Next.js, Prisma, React, Playwright, Tailwind CSS
+  npm
+
+  ✓ Registry refreshed: 3906 skills
+
+  ↑ Installed skill updates:
+    → next-best-practices    14.2.0 → 15.1.0
+    ⚠ BREAKING prisma-client-api    5.0.0 → 7.0.0
+    Run: npx skillpro --update
+
+  Matching skills...
+  ✔ 20 skills (from 2852 matches)
+```
+
 ## Architecture
 
 | Module | Responsibility |
 |--------|----------------|
-| `src/detect/stack.ts` | package.json reader with priority hierarchy |
-| `src/registry.ts` | Skill matching, priority scoring, dedup |
+| `src/detect/stack.ts` | Package manifest reader (JS/Python/Ruby/Go/Rust/Java), monorepo walker, priority hierarchy |
+| `src/registry.ts` | Skill matching, priority scoring, dedup, platform filter |
 | `src/install/skills-sh.ts` | Delegates to `npx skills add` |
 | `src/install/direct-fetch.ts` | Direct SKILL.md fetch for non-skills.sh |
 | `src/export/claude.ts` | CLAUDE.md managed section |
 | `src/export/cursor.ts` | `.cursor/rules/*.mdc` generator |
 | `src/export/codex.ts` | AGENTS.md managed section |
-| `src/config/skills-registry.json` | Pre-built skill catalog (3,906 skills) |
+| `src/update/config.ts` | `~/.config/skillpro/config.json` preferences |
+| `src/update/cli-check.ts` | npm registry version check (24h cache) |
+| `src/update/registry-refresh.ts` | GitHub overlay fetch with ETag (6h cache) |
+| `src/update/skill-check.ts` | Installed skill diff against registry |
+| `src/config/skills-registry.json` | Pre-built skill catalog (3,906 skills + curated maps + combos) |
 
 Zero runtime dependencies. Node ≥20 only — uses built-in `fetch`, `parseArgs`, and `fs`.
 
