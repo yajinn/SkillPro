@@ -9,6 +9,10 @@ import type { MatchedSkill } from './registry.js';
 import { installAll } from './install/index.js';
 import { exportSkills } from './export/index.js';
 import { generateClaudeMd } from './export/claude.js';
+import { loadConfig, ensureConfigFile } from './update/config.js';
+import { checkCliUpdate } from './update/cli-check.js';
+import { refreshRegistry } from './update/registry-refresh.js';
+import { checkSkillUpdates } from './update/skill-check.js';
 
 // ─── CLI Args ─────────────────────────────────────────────────────────
 
@@ -101,6 +105,18 @@ export async function main(): Promise<void> {
   printBanner();
   const spinner = new Spinner();
 
+  // ─── Step 0: Ensure config file + parallel auto-update checks ──────
+  ensureConfigFile();
+  const config = loadConfig();
+
+  // Kick off auto-update checks in parallel (non-blocking)
+  const cliUpdatePromise = config.update.check_cli
+    ? checkCliUpdate(getVersion()).catch(() => null)
+    : Promise.resolve(null);
+  const registryRefreshPromise = config.update.check_registry
+    ? refreshRegistry().catch(() => null)
+    : Promise.resolve(null);
+
   // ─── Step 1: Detect stack ──────────────────────────────────────────
   spinner.start('Detecting project...');
   const stacks = getStacks();
@@ -127,6 +143,9 @@ export async function main(): Promise<void> {
     }
   }
   process.stderr.write('\n');
+
+  // ─── Step 1.5: Auto-update notifications (non-blocking) ────────────
+  await showUpdateNotifications(cliUpdatePromise, registryRefreshPromise, config);
 
   // ─── Step 2: Match & rank skills ───────────────────────────────────
   spinner.start('Matching skills...');
@@ -237,4 +256,59 @@ export async function main(): Promise<void> {
   }
 
   process.stderr.write('\n');
+}
+
+// ─── Update Notifications ──────────────────────────────────────────────
+
+async function showUpdateNotifications(
+  cliUpdatePromise: Promise<Awaited<ReturnType<typeof checkCliUpdate>> | null>,
+  registryRefreshPromise: Promise<Awaited<ReturnType<typeof refreshRegistry>> | null>,
+  config: ReturnType<typeof loadConfig>,
+): Promise<void> {
+  // CLI update banner
+  if (config.update.check_cli) {
+    const cliUpdate = await cliUpdatePromise;
+    if (cliUpdate?.updateAvailable && cliUpdate.latest) {
+      process.stderr.write(
+        `  ${yellow('↑')} ${bold('SkillPro update available')}: ${dim(cliUpdate.current)} → ${green(cliUpdate.latest)}\n`,
+      );
+      process.stderr.write(`    ${dim('Run:')} ${cyan('npm i -g skillpro@latest')}  ${dim('or')}  ${cyan('npx skillpro@latest')}\n\n`);
+    }
+  }
+
+  // Registry refresh status (only show if fresh data pulled)
+  if (config.update.check_registry) {
+    const refresh = await registryRefreshPromise;
+    if (refresh?.status === 'fresh' && refresh.skillCount) {
+      process.stderr.write(
+        `  ${green('✓')} ${dim(`Registry refreshed: ${refresh.skillCount} skills`)}\n\n`,
+      );
+    }
+  }
+
+  // Skill updates notification
+  if (config.update.check_skills) {
+    try {
+      const report = checkSkillUpdates();
+      if (report.updates.length > 0 || report.deprecated.length > 0) {
+        process.stderr.write(`  ${yellow('↑')} ${bold('Installed skill updates:')}\n`);
+        for (const up of report.updates.slice(0, 5)) {
+          const arrow = up.breaking ? red('⚠ BREAKING') : green('→');
+          const ver = `${up.currentVersion ?? '?'} → ${up.latestVersion ?? '?'}`;
+          process.stderr.write(`    ${arrow} ${up.id} ${dim(ver)}\n`);
+        }
+        if (report.updates.length > 5) {
+          process.stderr.write(`    ${dim(`... +${report.updates.length - 5} more`)}\n`);
+        }
+        if (report.deprecated.length > 0) {
+          process.stderr.write(
+            `    ${red('✗')} ${bold(`${report.deprecated.length} deprecated`)}: ${dim(report.deprecated.slice(0, 3).join(', '))}\n`,
+          );
+        }
+        process.stderr.write(`    ${dim('Run:')} ${cyan('npx skillpro --update')}\n\n`);
+      }
+    } catch {
+      // Skill update check failed — silent
+    }
+  }
 }
