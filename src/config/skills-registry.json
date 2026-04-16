@@ -1282,7 +1282,8 @@
       "weekly_installs": 183900,
       "github_stars": 633,
       "stacks": [
-        "_azure"
+        "_azure",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -1296,7 +1297,8 @@
       "weekly_installs": 184100,
       "github_stars": 633,
       "stacks": [
-        "_azure"
+        "_azure",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -1494,7 +1496,8 @@
       "weekly_installs": 183100,
       "github_stars": 633,
       "stacks": [
-        "_azure"
+        "_azure",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -1508,7 +1511,8 @@
       "weekly_installs": 183100,
       "github_stars": 633,
       "stacks": [
-        "_azure"
+        "_azure",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -1592,7 +1596,7 @@
       "weekly_installs": 151100,
       "github_stars": 118100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -3067,7 +3071,7 @@
       "weekly_installs": 38700,
       "github_stars": 118100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -3782,7 +3786,8 @@
       "weekly_installs": 24000,
       "github_stars": 225,
       "stacks": [
-        "firebase"
+        "firebase",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -4051,7 +4056,8 @@
       "weekly_installs": 21600,
       "github_stars": 225,
       "stacks": [
-        "firebase"
+        "firebase",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -4079,7 +4085,8 @@
       "weekly_installs": 21600,
       "github_stars": 225,
       "stacks": [
-        "firebase"
+        "firebase",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -5024,8 +5031,7 @@
       "weekly_installs": 15300,
       "github_stars": 177,
       "stacks": [
-        "_security",
-        "_typescript"
+        "_security"
       ],
       "platform": "both"
     },
@@ -5529,10 +5535,7 @@
       "weekly_installs": 13300,
       "github_stars": 118100,
       "stacks": [
-        "_typescript",
-        "_python",
-        "_php",
-        "_ruby"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -5546,7 +5549,7 @@
       "weekly_installs": 13200,
       "github_stars": 11,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -6586,7 +6589,7 @@
       "weekly_installs": 10500,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -6741,7 +6744,7 @@
       "weekly_installs": 10400,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -6825,7 +6828,7 @@
       "weekly_installs": 10400,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -6853,8 +6856,7 @@
       "weekly_installs": 10400,
       "github_stars": 88,
       "stacks": [
-        "_typescript",
-        "_python"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -6868,7 +6870,7 @@
       "weekly_installs": 10400,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7024,7 +7026,7 @@
       "weekly_installs": 10100,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7052,7 +7054,7 @@
       "weekly_installs": 10100,
       "github_stars": 33700,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7080,7 +7082,7 @@
       "weekly_installs": 10100,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7094,7 +7096,7 @@
       "weekly_installs": 10100,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7417,7 +7419,7 @@
       "weekly_installs": 9800,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -7671,7 +7673,7 @@
       "weekly_installs": 9600,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8457,7 +8459,8 @@
       "weekly_installs": 9200,
       "github_stars": 225,
       "stacks": [
-        "firebase"
+        "firebase",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8670,7 +8673,7 @@
       "weekly_installs": 9000,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8782,7 +8785,7 @@
       "weekly_installs": 8900,
       "github_stars": 29900,
       "stacks": [
-        "_python"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8796,7 +8799,7 @@
       "weekly_installs": 8900,
       "github_stars": 29900,
       "stacks": [
-        "_typescript"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8852,7 +8855,7 @@
       "weekly_installs": 8900,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -8992,8 +8995,7 @@
       "weekly_installs": 8800,
       "github_stars": 29900,
       "stacks": [
-        "_typescript",
-        "_python"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -9274,7 +9276,7 @@
       "weekly_installs": 8600,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -9625,7 +9627,7 @@
       "weekly_installs": 8400,
       "github_stars": 29900,
       "stacks": [
-        "_rust"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10423,7 +10425,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_php"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10633,7 +10635,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "mobile"
     },
@@ -10661,7 +10663,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10844,7 +10846,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10858,7 +10860,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10928,7 +10930,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -10942,7 +10944,7 @@
       "weekly_installs": 8300,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11054,7 +11056,7 @@
       "weekly_installs": 8200,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11082,7 +11084,7 @@
       "weekly_installs": 8200,
       "github_stars": 29900,
       "stacks": [
-        "_kotlin"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11152,7 +11154,7 @@
       "weekly_installs": 8200,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11194,7 +11196,7 @@
       "weekly_installs": 8200,
       "github_stars": 3,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11222,7 +11224,7 @@
       "weekly_installs": 8200,
       "github_stars": 29900,
       "stacks": [
-        "_ruby"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11264,7 +11266,8 @@
       "weekly_installs": 8100,
       "github_stars": 9800,
       "stacks": [
-        "flutter"
+        "flutter",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11278,7 +11281,8 @@
       "weekly_installs": 8000,
       "github_stars": 3400,
       "stacks": [
-        "nextjs"
+        "nextjs",
+        "_ai"
       ],
       "platform": "web"
     },
@@ -11476,7 +11480,7 @@
       "weekly_installs": 7600,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -11672,7 +11676,7 @@
       "weekly_installs": 7000,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -12250,7 +12254,7 @@
       "weekly_installs": 6200,
       "github_stars": 33700,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -13219,7 +13223,7 @@
       "weekly_installs": 5000,
       "github_stars": 33700,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -13387,7 +13391,8 @@
       "weekly_installs": 5000,
       "github_stars": 225,
       "stacks": [
-        "firebase"
+        "firebase",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -14087,7 +14092,7 @@
       "weekly_installs": 4600,
       "github_stars": 16300,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -14269,8 +14274,7 @@
       "weekly_installs": 4500,
       "github_stars": 105800,
       "stacks": [
-        "_ai",
-        "_typescript"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -14593,7 +14597,7 @@
       "weekly_installs": 4400,
       "github_stars": 0,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -14775,7 +14779,7 @@
       "weekly_installs": 4300,
       "github_stars": 2200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -15406,9 +15410,7 @@
       "weekly_installs": 4200,
       "github_stars": 585,
       "stacks": [
-        "_ai",
-        "_typescript",
-        "_python"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -15732,7 +15734,8 @@
       "weekly_installs": 4000,
       "github_stars": 854,
       "stacks": [
-        "cloudflare-workers"
+        "cloudflare-workers",
+        "_ai"
       ],
       "platform": "web"
     },
@@ -16054,7 +16057,7 @@
       "weekly_installs": 3700,
       "github_stars": 29900,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16110,7 +16113,8 @@
       "weekly_installs": 3700,
       "github_stars": 854,
       "stacks": [
-        "cloudflare-workers"
+        "cloudflare-workers",
+        "_ai"
       ],
       "platform": "web"
     },
@@ -16419,7 +16423,7 @@
       "weekly_installs": 572,
       "github_stars": 1500,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16657,7 +16661,7 @@
       "weekly_installs": 571,
       "github_stars": 1500,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16671,7 +16675,7 @@
       "weekly_installs": 3500,
       "github_stars": 3,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16741,7 +16745,7 @@
       "weekly_installs": 571,
       "github_stars": 1500,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16769,7 +16773,7 @@
       "weekly_installs": 571,
       "github_stars": 1500,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16883,7 +16887,7 @@
       "weekly_installs": 3400,
       "github_stars": 2300,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -16911,7 +16915,8 @@
       "weekly_installs": 3400,
       "github_stars": 854,
       "stacks": [
-        "cloudflare-workers"
+        "cloudflare-workers",
+        "_ai"
       ],
       "platform": "web"
     },
@@ -17051,7 +17056,7 @@
       "weekly_installs": 3400,
       "github_stars": 11,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -17431,7 +17436,7 @@
       "weekly_installs": 3100,
       "github_stars": 17100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -17501,7 +17506,7 @@
       "weekly_installs": 3200,
       "github_stars": 88,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -17641,7 +17646,7 @@
       "weekly_installs": 3000,
       "github_stars": 4400,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -18006,7 +18011,7 @@
       "weekly_installs": 2800,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -18640,7 +18645,8 @@
       "weekly_installs": 2600,
       "github_stars": 157600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -18697,7 +18703,7 @@
       "weekly_installs": 2600,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -19300,7 +19306,7 @@
       "weekly_installs": 2400,
       "github_stars": 25,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -19496,7 +19502,7 @@
       "weekly_installs": 2400,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -19776,7 +19782,8 @@
       "weekly_installs": 2300,
       "github_stars": 157600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -20001,8 +20008,7 @@
       "weekly_installs": 2300,
       "github_stars": 105800,
       "stacks": [
-        "_ai",
-        "_python"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -20030,8 +20036,7 @@
       "weekly_installs": 2300,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_python"
+        "_security"
       ],
       "platform": "both"
     },
@@ -20115,7 +20120,7 @@
       "weekly_installs": 2300,
       "github_stars": 170,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -20494,7 +20499,7 @@
       "weekly_installs": 2200,
       "github_stars": 3200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -20746,7 +20751,7 @@
       "weekly_installs": 2100,
       "github_stars": 17100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -21083,7 +21088,7 @@
       "weekly_installs": 2000,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -21097,7 +21102,7 @@
       "weekly_installs": 2000,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -21422,7 +21427,7 @@
       "weekly_installs": 2000,
       "github_stars": 157600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -21747,7 +21752,7 @@
       "weekly_installs": 1900,
       "github_stars": 929,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -23599,8 +23604,7 @@
       "weekly_installs": 1700,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_rust"
+        "_security"
       ],
       "platform": "both"
     },
@@ -23740,7 +23744,8 @@
       "weekly_installs": 1700,
       "github_stars": 4600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -24006,8 +24011,7 @@
       "weekly_installs": 1600,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_python"
+        "_security"
       ],
       "platform": "both"
     },
@@ -24119,8 +24123,7 @@
       "weekly_installs": 1600,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_rust"
+        "_security"
       ],
       "platform": "both"
     },
@@ -24303,8 +24306,7 @@
       "weekly_installs": 1600,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_ruby"
+        "_security"
       ],
       "platform": "both"
     },
@@ -24614,7 +24616,7 @@
       "weekly_installs": 1600,
       "github_stars": 11,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -25216,7 +25218,8 @@
       "weekly_installs": 1500,
       "github_stars": 1900,
       "stacks": [
-        "vercel"
+        "vercel",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -25946,7 +25949,7 @@
       "weekly_installs": 1500,
       "github_stars": 229,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -26412,7 +26415,8 @@
       "github_stars": 1200,
       "stacks": [
         "react-native",
-        "react"
+        "react",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -26482,7 +26486,7 @@
       "weekly_installs": 1400,
       "github_stars": 42,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -26652,7 +26656,7 @@
       "weekly_installs": 1400,
       "github_stars": 358200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -27228,7 +27232,7 @@
       "weekly_installs": 1300,
       "github_stars": 54100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -27411,7 +27415,8 @@
       "weekly_installs": 1300,
       "github_stars": 4600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -28325,7 +28330,7 @@
       "weekly_installs": 1200,
       "github_stars": 25,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -28662,7 +28667,7 @@
       "weekly_installs": 1200,
       "github_stars": 8200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -28732,7 +28737,8 @@
       "weekly_installs": 1200,
       "github_stars": 4600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -28914,7 +28920,8 @@
       "weekly_installs": 1200,
       "github_stars": 4600,
       "stacks": [
-        "_security"
+        "_security",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -29282,7 +29289,7 @@
       "weekly_installs": 1200,
       "github_stars": 24,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -29324,7 +29331,7 @@
       "weekly_installs": 1200,
       "github_stars": 358200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -29814,7 +29821,7 @@
       "weekly_installs": 1200,
       "github_stars": 72,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -30052,7 +30059,7 @@
       "weekly_installs": 1200,
       "github_stars": 870,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -30209,7 +30216,8 @@
       "github_stars": 86600,
       "stacks": [
         "_azure",
-        "playwright"
+        "playwright",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -30519,7 +30527,7 @@
       "weekly_installs": 1100,
       "github_stars": 67,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -30617,7 +30625,8 @@
       "weekly_installs": 1100,
       "github_stars": 4,
       "stacks": [
-        "stripe"
+        "stripe",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -31040,7 +31049,8 @@
       "weekly_installs": 1100,
       "github_stars": 4,
       "stacks": [
-        "stripe"
+        "stripe",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -31082,8 +31092,7 @@
       "weekly_installs": 1100,
       "github_stars": 4600,
       "stacks": [
-        "_security",
-        "_rust"
+        "_security"
       ],
       "platform": "both"
     },
@@ -31322,7 +31331,7 @@
       "weekly_installs": 1100,
       "github_stars": 25,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -31504,7 +31513,7 @@
       "weekly_installs": 1100,
       "github_stars": 49,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -31603,7 +31612,7 @@
       "weekly_installs": 1100,
       "github_stars": 8,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -33131,7 +33140,7 @@
       "weekly_installs": 1000,
       "github_stars": 15100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -33598,7 +33607,8 @@
       "weekly_installs": 1000,
       "github_stars": 4,
       "stacks": [
-        "stripe"
+        "stripe",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -33640,7 +33650,7 @@
       "weekly_installs": 998,
       "github_stars": 393,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -33738,7 +33748,7 @@
       "weekly_installs": 998,
       "github_stars": 3200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -36283,7 +36293,7 @@
       "weekly_installs": 927,
       "github_stars": 2100,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -38607,7 +38617,7 @@
       "weekly_installs": 894,
       "github_stars": 2200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -38747,7 +38757,7 @@
       "weekly_installs": 853,
       "github_stars": 726,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -39630,7 +39640,7 @@
       "weekly_installs": 829,
       "github_stars": 12,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -39966,7 +39976,7 @@
       "weekly_installs": 819,
       "github_stars": 99200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -40050,7 +40060,7 @@
       "weekly_installs": 813,
       "github_stars": 37,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -40667,7 +40677,7 @@
       "weekly_installs": 769,
       "github_stars": 33200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -41384,7 +41394,8 @@
       "weekly_installs": 782,
       "github_stars": 75200,
       "stacks": [
-        "nextjs"
+        "nextjs",
+        "_ai"
       ],
       "platform": "web"
     },
@@ -41916,6 +41927,7 @@
       "weekly_installs": 760,
       "github_stars": 2000,
       "stacks": [
+        "_ai",
         "_api"
       ],
       "platform": "both"
@@ -45189,7 +45201,7 @@
       "weekly_installs": 690,
       "github_stars": 3400,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -46762,8 +46774,7 @@
       "weekly_installs": 650,
       "github_stars": 16900,
       "stacks": [
-        "_ai",
-        "_rust"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -46917,7 +46928,7 @@
       "weekly_installs": 662,
       "github_stars": 44,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -47183,7 +47194,7 @@
       "weekly_installs": 652,
       "github_stars": 44,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -49966,7 +49977,7 @@
       "weekly_installs": 596,
       "github_stars": 14500,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -52537,8 +52548,7 @@
       "weekly_installs": 544,
       "github_stars": 16900,
       "stacks": [
-        "_ai",
-        "_csharp"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -52875,7 +52885,7 @@
       "weekly_installs": 507,
       "github_stars": 33200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -54138,7 +54148,7 @@
       "weekly_installs": 507,
       "github_stars": 24600,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -54777,7 +54787,7 @@
       "weekly_installs": 468,
       "github_stars": 33200,
       "stacks": [
-        "_universal"
+        "_ai"
       ],
       "platform": "both"
     },
@@ -55268,7 +55278,8 @@
       "github_stars": 211,
       "stacks": [
         "spring-boot",
-        "_java"
+        "_java",
+        "_ai"
       ],
       "platform": "both"
     },
@@ -56108,5 +56119,268 @@
       ],
       "platform": "both"
     }
-  }
+  },
+  "curated_skills": {
+    "react": [
+      "vercel-react-best-practices",
+      "vercel-composition-patterns"
+    ],
+    "nextjs": [
+      "next-best-practices",
+      "next-cache-components",
+      "next-upgrade"
+    ],
+    "vue": [
+      "vue-best-practices",
+      "vue-debug-guides",
+      "vue",
+      "vue-pinia-best-practices"
+    ],
+    "svelte": [
+      "svelte5-best-practices",
+      "svelte-code-writer"
+    ],
+    "sveltekit": [
+      "svelte5-best-practices",
+      "svelte-code-writer"
+    ],
+    "angular": [
+      "angular-developer",
+      "reference-core",
+      "reference-signal-forms",
+      "reference-compiler-cli"
+    ],
+    "astro": [
+      "astro"
+    ],
+    "remix": [
+      "vercel-react-best-practices",
+      "vercel-composition-patterns"
+    ],
+    "gatsby": [
+      "vercel-react-best-practices",
+      "vercel-composition-patterns"
+    ],
+    "nuxt": [
+      "vue-best-practices",
+      "vue-debug-guides"
+    ],
+    "react-native": [
+      "sleek-design-mobile-apps",
+      "react-native-best-practices",
+      "react-native-architecture"
+    ],
+    "expo": [
+      "building-native-ui",
+      "native-data-fetching",
+      "upgrading-expo",
+      "expo-tailwind-setup",
+      "expo-dev-client",
+      "expo-deployment",
+      "expo-cicd-workflows",
+      "expo-api-routes",
+      "use-dom"
+    ],
+    "flutter": [
+      "flutter-expert",
+      "flutter-animations",
+      "flutter-testing",
+      "flutter-building-layouts",
+      "flutter-managing-state"
+    ],
+    "electron": [],
+    "tauri": [
+      "tauri-v2"
+    ],
+    "nestjs": [
+      "nestjs-best-practices"
+    ],
+    "express": [],
+    "fastify": [],
+    "hono": [
+      "hono",
+      "hono-routing",
+      "hono-api-scaffolder"
+    ],
+    "django": [
+      "django-expert",
+      "django-patterns",
+      "django-security"
+    ],
+    "fastapi": [
+      "fastapi-python",
+      "python-backend"
+    ],
+    "flask": [],
+    "laravel": [
+      "laravel-specialist",
+      "laravel-patterns",
+      "laravel-security",
+      "eloquent-best-practices"
+    ],
+    "rails": [
+      "rails-expert",
+      "dhh-rails-style"
+    ],
+    "spring-boot": [],
+    "supabase": [
+      "supabase-postgres-best-practices",
+      "supabase"
+    ],
+    "prisma": [
+      "prisma-database-setup",
+      "prisma-client-api",
+      "prisma-cli",
+      "prisma-postgres"
+    ],
+    "drizzle": [
+      "drizzle-orm-d1",
+      "d1-drizzle-schema"
+    ],
+    "firebase": [
+      "firebase-basics",
+      "firebase-auth-basics",
+      "firebase-hosting-basics",
+      "firebase-firestore-standard"
+    ],
+    "tailwindcss": [
+      "tailwind-css-patterns",
+      "tailwind-design-system"
+    ],
+    "shadcn": [
+      "shadcn",
+      "shadcn-ui"
+    ],
+    "playwright": [
+      "playwright-best-practices"
+    ],
+    "vitest": [
+      "vitest"
+    ],
+    "stripe": [
+      "stripe-best-practices",
+      "upgrade-stripe"
+    ],
+    "vercel": [
+      "deploy-to-vercel",
+      "vercel-cli-with-tokens"
+    ],
+    "cloudflare-workers": [
+      "cloudflare",
+      "wrangler",
+      "workers-best-practices",
+      "web-perf"
+    ],
+    "docker": [
+      "docker-expert",
+      "multi-stage-dockerfile"
+    ],
+    "terraform": [],
+    "wordpress": [
+      "wp-plugin-development",
+      "wp-block-themes",
+      "wp-rest-api"
+    ],
+    "remotion": [
+      "remotion-best-practices"
+    ],
+    "_typescript": [
+      "typescript-advanced-types",
+      "typescript-expert"
+    ],
+    "_python": [
+      "python-executor",
+      "python-testing-patterns"
+    ],
+    "_go": [
+      "golang-pro",
+      "golang-patterns"
+    ],
+    "_rust": [
+      "m15-anti-pattern",
+      "coding-guidelines"
+    ],
+    "_php": [
+      "php-best-practices",
+      "php-pro"
+    ],
+    "_ruby": [
+      "ruby-mcp-server-generator"
+    ],
+    "_java": [
+      "javarevisited-spring-boot"
+    ]
+  },
+  "skill_combos": [
+    {
+      "techs": [
+        "django",
+        "celery"
+      ],
+      "skills": [
+        "python-background-jobs"
+      ]
+    },
+    {
+      "techs": [
+        "nextjs",
+        "playwright"
+      ],
+      "skills": [
+        "webapp-testing"
+      ]
+    },
+    {
+      "techs": [
+        "react-native",
+        "expo"
+      ],
+      "skills": [
+        "building-native-ui"
+      ]
+    },
+    {
+      "techs": [
+        "nextjs",
+        "supabase"
+      ],
+      "skills": [
+        "supabase-postgres-best-practices"
+      ]
+    },
+    {
+      "techs": [
+        "nextjs",
+        "prisma"
+      ],
+      "skills": [
+        "prisma-postgres"
+      ]
+    },
+    {
+      "techs": [
+        "express",
+        "prisma"
+      ],
+      "skills": [
+        "prisma-client-api"
+      ]
+    },
+    {
+      "techs": [
+        "nestjs",
+        "prisma"
+      ],
+      "skills": [
+        "prisma-client-api"
+      ]
+    }
+  ],
+  "universal_frontend_skills": [
+    "frontend-design",
+    "accessibility",
+    "seo",
+    "seo-audit",
+    "web-accessibility"
+  ]
 }

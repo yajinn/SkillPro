@@ -203,7 +203,28 @@ const SKILL_MATCHERS: Array<[string, RegExp[]]> = [
   // ── Domains ──
   ['_security', [/\bsecurity\s+(?:audit|review|best|check|harden|scan)/i, /\bvulnerabilit/i, /\bsemgrep\b/i, /\bsast\b/i, /\bsca\b/i, /\bowasp\b/i, /\bpentest/i]],
   ['_web3', [/\bsolana\s+(?:program|anchor|sdk)/i, /\bethereum\s+(?:smart|contract)/i, /\bsolidity\b/i, /\bsmart[\s-]?contract\s+(?:audit|deploy|test)/i]],
-  ['_ai', [/\bllm\s+(?:app|agent|chain)\b/i, /\bprompt[\s-]?engineer/i, /\brag\s+(?:pipeline|system)/i, /\blangchain\b/i, /\bmodel[\s-]?train/i, /\bembedding\s+(?:model|search)/i]],
+  // _ai: BROADENED to catch ecosystem-specific AI tooling (Claude API, Copilot,
+  // Genkit, MCP servers, LangChain, etc.). These shouldn't show up for
+  // projects that don't use AI — registry.ts gates _ai by AI dependency presence.
+  ['_ai', [
+    /\bllm\s+(?:app|agent|chain|integ)/i,
+    /\bprompt[\s-]?engineer/i,
+    /\brag\s+(?:pipeline|system)/i,
+    /\blangchain\b/i,
+    /\bllamaindex\b/i,
+    /\bmodel[\s-]?train/i,
+    /\bembedding\s+(?:model|search)/i,
+    /\bclaude\s+(?:api|sdk|code)\b/i,
+    /\banthropic\s+(?:api|sdk|claude)\b/i,
+    /\bopenai\s+(?:api|sdk|gpt)\b/i,
+    /\bcopilot\s+(?:sdk|api|agent|workflow)/i,
+    /\bgenkit\b/i,
+    /\bmcp\s+(?:server|builder|tool|client|generator)/i,
+    /\bagent\s+(?:runtime|toolkit|sdk|framework)/i,
+    /\bgemini\s+(?:api|sdk)\b/i,
+    /\bai\s+(?:workflow|agent|chain|integration|toolkit)/i,
+    /\bvertex[\s-]?ai\b/i,
+  ]],
   ['_seo', [/\bseo\s+(?:audit|content|keyword|backlink|optim)/i, /\bsearch[\s-]?engine[\s-]?optim/i]],
   ['_marketing', [/\bmarketing\s+(?:strategy|automation|campaign)/i, /\bcopywriting\s+(?:best|guide|framework)/i, /\bcontent[\s-]?strategy\b/i]],
   ['_devops', [/\bci[\s\/]?cd\s+(?:pipeline|workflow|config)/i, /\bgithub[\s-]?actions\b/i, /\bdeployment[\s-]?automat/i]],
@@ -264,11 +285,15 @@ function main(): void {
       }
     }
 
-    // 3. Fallback to language tags ONLY if no primary match
+    // 3. Fallback to language tags ONLY if no primary match AND no
+    //    ecosystem/domain tag (ai, security, web3) already matched.
+    //    Prevents "Claude API + _typescript" from showing on every TS project.
+    const ECOSYSTEM_TAGS = new Set(['_ai', '_security', '_web3', '_wordpress']);
     const hasPrimaryMatch = [...matchedStacks].some(
       (s) => !s.startsWith('_') && s !== '_universal',
     );
-    if (!hasPrimaryMatch) {
+    const hasEcosystemMatch = [...matchedStacks].some((s) => ECOSYSTEM_TAGS.has(s));
+    if (!hasPrimaryMatch && !hasEcosystemMatch) {
       for (const [langId, patterns] of LANGUAGE_FALLBACK_MATCHERS) {
         if (matchAny(text, patterns)) {
           matchedStacks.add(langId);

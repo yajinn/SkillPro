@@ -118,7 +118,7 @@ export async function main(): Promise<void> {
   // ─── Step 2: Match & rank skills ───────────────────────────────────
   spinner.start('Matching skills...');
   const detectedIds = detected.all.map((s) => s.id);
-  const result = matchSkills(detectedIds, detected.language);
+  const result = matchSkills(detectedIds, detected.language, detected.dependencies);
 
   spinner.succeed(
     `${bold(String(result.recommended.length))} skills ${dim(`(from ${result.totalMatched} matches)`)}`,

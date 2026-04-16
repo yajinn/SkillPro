@@ -47,6 +47,12 @@ interface Registry {
   repo_to_stack: Record<string, string[]>;
   keyword_to_stack: Record<string, string[]>;
   skills: Record<string, RegistrySkill>;
+  /** Hand-curated skill IDs per stack. Highest-priority matches. */
+  curated_skills?: Record<string, string[]>;
+  /** Cross-tech combo skills. e.g. Django + Celery → background jobs. */
+  skill_combos?: Array<{ techs: string[]; skills: string[] }>;
+  /** Universal skills for all frontend/web projects. */
+  universal_frontend_skills?: string[];
 }
 
 // ─── Load registry ────────────────────────────────────────────────────
@@ -222,19 +228,78 @@ export interface MatchResult {
 export function matchSkills(
   detectedStackIds: string[],
   language: string = 'unknown',
+  dependencies: string[] = [],
 ): MatchResult {
   const registry = loadRegistry();
   const matchSet = buildMatchSet(detectedStackIds, language);
   const projectPlatform = detectProjectPlatform(detectedStackIds);
-  const raw: MatchedSkill[] = [];
 
-  // Phase 1: Find all matching skills (stack match + platform compatible)
+  // Ecosystem gates: only include these tags if the project actually uses them
+  const deps = new Set(dependencies.map((d) => d.toLowerCase()));
+  const AI_DEP_PATTERNS = [
+    /^@anthropic-ai\//, /^anthropic$/, /^openai$/, /^@openai\//,
+    /^langchain/, /^@langchain\//, /^llamaindex/, /^@llamaindex\//,
+    /^@google-ai\//, /^genkit/, /^@modelcontextprotocol\//,
+    /^ai$/,
+  ];
+  const hasAiDep = [...deps].some((d) => AI_DEP_PATTERNS.some((p) => p.test(d)));
+  if (hasAiDep) matchSet.add('_ai');
+
+  const addedIds = new Set<string>();
+  const curated: MatchedSkill[] = [];
+
+  // Helper: add a skill by ID with a given matched stack label
+  const addSkill = (skillId: string, matchedStack: string): void => {
+    if (addedIds.has(skillId)) return;
+    const skill = registry.skills[skillId];
+    if (!skill) return;
+    if (!isPlatformCompatible(skill.platform, projectPlatform)) return;
+    addedIds.add(skillId);
+    curated.push({
+      ...skill,
+      id: skillId,
+      matchedStack,
+      priority: computePriority(skill) + 1000, // boost curated over regex-matched
+      isAlternative: false,
+    });
+  };
+
+  // ─── PHASE 1: CURATED (hand-picked per detected stack) ───
+  // Highest priority — these are known-good skills for each tech.
+  const curatedMap = registry.curated_skills ?? {};
+  for (const stackId of detectedStackIds) {
+    const ids = curatedMap[stackId];
+    if (ids) for (const id of ids) addSkill(id, stackId);
+  }
+  // Language fallback curated (_typescript, _python, etc.)
+  if (language) {
+    const langIds = curatedMap[`_${language}`];
+    if (langIds) for (const id of langIds) addSkill(id, `_${language}`);
+  }
+
+  // ─── PHASE 2: COMBOS (cross-tech specializations) ───
+  const combos = registry.skill_combos ?? [];
+  const detectedSet = new Set(detectedStackIds);
+  for (const combo of combos) {
+    const allMatch = combo.techs.every((t) => detectedSet.has(t));
+    if (allMatch) {
+      for (const id of combo.skills) addSkill(id, `${combo.techs.join('+')}`);
+    }
+  }
+
+  // ─── PHASE 3: UNIVERSAL FRONTEND (for web projects only) ───
+  if (projectPlatform === 'web') {
+    const frontendSkills = registry.universal_frontend_skills ?? [];
+    for (const id of frontendSkills) addSkill(id, 'frontend');
+  }
+
+  // ─── PHASE 4: REGEX-MATCHED (fill remaining slots with stack-matched skills) ───
+  const raw: MatchedSkill[] = [];
   for (const [skillId, skill] of Object.entries(registry.skills)) {
-    // HARD GATE: platform compatibility
+    if (addedIds.has(skillId)) continue;
     if (!isPlatformCompatible(skill.platform, projectPlatform)) continue;
 
     const skillStacks = skill.stacks ?? ['_universal'];
-
     let bestMatch: string | null = null;
     for (const ss of skillStacks) {
       if (ss !== '_universal' && matchSet.has(ss)) {
@@ -242,9 +307,7 @@ export function matchSkills(
         break;
       }
     }
-    if (!bestMatch && skillStacks.includes('_universal')) {
-      bestMatch = '_universal';
-    }
+    if (!bestMatch && skillStacks.includes('_universal')) bestMatch = '_universal';
     if (!bestMatch) continue;
 
     raw.push({
@@ -255,13 +318,25 @@ export function matchSkills(
       isAlternative: false,
     });
   }
-
-  // Phase 2: Sort by priority
   raw.sort((a, b) => b.priority - a.priority);
 
-  // Phase 3: Split specific vs universal
-  const specific = raw.filter((s) => s.matchedStack !== 'universal');
-  const universal = raw.filter((s) => s.matchedStack === 'universal');
+  // Cap language fallbacks at 2 per language (AutoSkills-tight)
+  const MAX_PER_LANG_FALLBACK = 2;
+  const langCounts = new Map<string, number>();
+  const afterLangCap: MatchedSkill[] = [];
+  for (const skill of raw) {
+    if (skill.matchedStack.startsWith('_') && skill.matchedStack !== 'universal') {
+      const count = langCounts.get(skill.matchedStack) ?? 0;
+      if (count >= MAX_PER_LANG_FALLBACK) continue;
+      langCounts.set(skill.matchedStack, count + 1);
+    }
+    afterLangCap.push(skill);
+  }
+
+  // Merge: curated first, then regex-matched
+  const allMatched = [...curated, ...afterLangCap];
+  const specific = allMatched.filter((s) => s.matchedStack !== 'universal');
+  const universal = allMatched.filter((s) => s.matchedStack === 'universal');
 
   // Phase 4: Dedup specific skills
   const specificGroups = groupSimilar(specific);
