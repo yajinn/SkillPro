@@ -2,7 +2,7 @@ import { parseArgs } from 'node:util';
 import type { CliArgs } from './types.js';
 import { printBanner, getVersion } from './ui/banner.js';
 import { Spinner } from './ui/spinner.js';
-import { bold, orange, dim, green, gray, red, yellow, symbols } from './ui/colors.js';
+import { bold, orange, dim, gray, red, yellow, symbols } from './ui/colors.js';
 import { detectStack } from './detect/stack.js';
 import { getStacks, matchSkills } from './registry.js';
 import type { MatchedSkill } from './registry.js';
@@ -79,7 +79,7 @@ function formatInstalls(n: number): string {
 function sourceTag(skill: MatchedSkill): string {
   if (skill.source === 'Anthropic Skills') return bold(orange('anthropic'));
   const installs = formatInstalls(skill.weekly_installs ?? 0);
-  if (installs) return green(installs);
+  if (installs) return orange(installs);
   const stars = skill.github_stars ?? 0;
   if (stars > 0) return dim(`${symbols.bullet} ${formatInstalls(stars)}`);
   return '';
@@ -161,7 +161,7 @@ export async function main(): Promise<void> {
       for (const skill of skills) {
         const tag = sourceTag(skill);
         process.stderr.write(
-          `    ${green(symbols.checkboxOn)} ${bold(skill.name)} ${tag}\n`,
+          `    ${orange(symbols.checkboxOn)} ${bold(skill.name)} ${tag}\n`,
         );
         if (skill.description) {
           process.stderr.write(`      ${gray(skill.description.slice(0, 80))}\n`);
@@ -185,10 +185,15 @@ export async function main(): Promise<void> {
     return;
   }
 
-  // ─── Step 4: Install ───────────────────────────────────────────────
+  // ─── Step 4: Interactive multi-select (space to toggle, enter to confirm) ───
   const toInstall = args.yes
     ? result.recommended
-    : result.recommended; // TODO: interactive multi-select
+    : await promptSelection(result.recommended);
+
+  if (toInstall.length === 0) {
+    process.stderr.write(`  ${dim('No skills selected. Nothing to install.')}\n\n`);
+    return;
+  }
 
   const asScoredSkills = toInstall.map((s) => ({
     ...s,
@@ -217,7 +222,7 @@ export async function main(): Promise<void> {
   const fail = results.filter((r) => !r.success).length;
 
   process.stderr.write('\n');
-  if (ok > 0) process.stderr.write(`  ${green(`${ok} installed`)}`);
+  if (ok > 0) process.stderr.write(`  ${orange(`${ok} installed`)}`);
   if (fail > 0) process.stderr.write(`  ${red(`${fail} failed`)}`);
   process.stderr.write('\n');
 
@@ -237,6 +242,43 @@ export async function main(): Promise<void> {
   }
 
   process.stderr.write('\n');
+}
+
+// ─── Interactive Selection ─────────────────────────────────────────────
+
+async function promptSelection(matched: MatchedSkill[]): Promise<MatchedSkill[]> {
+  if (!process.stdin.isTTY) return matched; // non-interactive: install all
+
+  // Adapt MatchedSkill → ScoredSkill for the multi-select UI
+  const { multiSelect } = await import('./ui/multi-select.js');
+  const asScored = matched.map((s) => ({
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    install_url: s.install_url,
+    version: null,
+    commit_sha: null,
+    tags: [],
+    boost_when: [],
+    penalize_when: [],
+    default_for: [],
+    match_language: null,
+    match_framework: null,
+    match_sub_framework: null,
+    match_libraries: [],
+    boost_libraries: [],
+    category: s.matchedStack,
+    popularity: 0,
+    source: { name: s.source, install_url: s.install_url, commit_sha: null, type: 'registry' },
+    score: s.priority,
+    relevance: 'recommended' as const,
+  }));
+
+  process.stderr.write(`  ${bold('Select skills to install')} ${dim('(space toggle · a all · n none · enter install · q cancel)')}\n`);
+
+  const picked = await multiSelect(asScored);
+  const pickedIds = new Set(picked.map((p) => p.id));
+  return matched.filter((m) => pickedIds.has(m.id));
 }
 
 // ─── Detection Report ──────────────────────────────────────────────────
@@ -260,7 +302,7 @@ function printDetectionReport(detected: ReturnType<typeof detectStack>): void {
   // Stack grid — all detected stacks as pills
   if (detected.all.length > 0) {
     process.stderr.write(`    ${dim('stacks')}    `);
-    const pills = detected.all.map((s) => `${green('✓')} ${bold(s.name)}`);
+    const pills = detected.all.map((s) => `${orange('✓')} ${bold(s.name)}`);
     // Layout as wrapped line with 3 per row max
     const perRow = 3;
     for (let i = 0; i < pills.length; i += perRow) {
@@ -279,7 +321,7 @@ function printDetectionReport(detected: ReturnType<typeof detectStack>): void {
     for (const ws of detected.workspaces) {
       const pad = ws.name.padEnd(maxNameLen);
       const wsStacks = ws.stacks.length > 0
-        ? ws.stacks.map((s) => green(s.name)).join(`${dim(' · ')}`)
+        ? ws.stacks.map((s) => orange(s.name)).join(`${dim(' · ')}`)
         : dim('(no stacks)');
       process.stderr.write(`    ${dim('↳')} ${bold(pad)}   ${wsStacks}\n`);
     }
@@ -305,7 +347,7 @@ async function showUpdateNotifications(
     const cliUpdate = await cliUpdatePromise;
     if (cliUpdate?.updateAvailable && cliUpdate.latest) {
       process.stderr.write(
-        `  ${yellow('↑')} ${bold('SkillPro update available')}: ${dim(cliUpdate.current)} → ${green(cliUpdate.latest)}\n`,
+        `  ${yellow('↑')} ${bold('SkillPro update available')}: ${dim(cliUpdate.current)} → ${orange(cliUpdate.latest)}\n`,
       );
       process.stderr.write(`    ${dim('Run:')} ${orange('npm i -g skillpro@latest')}  ${dim('or')}  ${orange('npx skillpro@latest')}\n\n`);
     }
@@ -316,7 +358,7 @@ async function showUpdateNotifications(
     const refresh = await registryRefreshPromise;
     if (refresh?.status === 'fresh' && refresh.skillCount) {
       process.stderr.write(
-        `  ${green('✓')} ${dim(`Registry refreshed: ${refresh.skillCount} skills`)}\n\n`,
+        `  ${orange('✓')} ${dim(`Registry refreshed: ${refresh.skillCount} skills`)}\n\n`,
       );
     }
   }
@@ -328,7 +370,7 @@ async function showUpdateNotifications(
       if (report.updates.length > 0 || report.deprecated.length > 0) {
         process.stderr.write(`  ${yellow('↑')} ${bold('Installed skill updates:')}\n`);
         for (const up of report.updates.slice(0, 5)) {
-          const arrow = up.breaking ? red('⚠ BREAKING') : green('→');
+          const arrow = up.breaking ? red('⚠ BREAKING') : orange('→');
           const ver = `${up.currentVersion ?? '?'} → ${up.latestVersion ?? '?'}`;
           process.stderr.write(`    ${arrow} ${up.id} ${dim(ver)}\n`);
         }

@@ -43,6 +43,7 @@ export const symbols = {
   ellipsis: enabled ? '\u2026' : '...',
   radioOn: enabled ? '\u25c9' : '(x)',
   radioOff: enabled ? '\u25cb' : '( )',
-  checkboxOn: enabled ? '\u25a3' : '[x]',
-  checkboxOff: enabled ? '\u25a1' : '[ ]',
+  // ASCII-style checkboxes — brackets wrap a check or space
+  checkboxOn: '[\u2713]',   // [✓] check inside brackets
+  checkboxOff: '[ ]',       // [ ] empty brackets
 } as const;

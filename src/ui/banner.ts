@@ -1,6 +1,6 @@
-import { bold, orange, dim, gray, green, white, yellow } from './colors.js';
+import { bold, orange, dim, gray, white, yellow } from './colors.js';
 
-const VERSION = '2.6.3';
+const VERSION = '2.6.4';
 const TAGLINE = 'Zero-config skill discovery for AI coding agents';
 
 /**
@@ -20,7 +20,7 @@ export function printBanner(): void {
   // Row 1: "  ✦  SKILLPRO                               ● v2.6.1  "
   const nameLeft = `  ${yellow('✦')}  ${bold(white('SKILLPRO'))}`;
   const nameLeftVisual = 2 + 1 + 2 + 8; // 13 chars visible
-  const versionRight = `${green('●')} ${bold(green(`v${VERSION}`))}  `;
+  const versionRight = `${orange('●')} ${bold(orange(`v${VERSION}`))}  `;
   const versionRightVisual = 1 + 1 + 1 + VERSION.length + 2; // "● v2.6.1  " = 10
   const gap = BOX_WIDTH - nameLeftVisual - versionRightVisual;
   const row1 = nameLeft + ' '.repeat(Math.max(1, gap)) + versionRight;
