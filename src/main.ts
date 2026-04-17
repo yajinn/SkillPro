@@ -7,6 +7,7 @@ import { detectStack } from './detect/stack.js';
 import { getStacks, matchSkills } from './registry.js';
 import type { MatchedSkill } from './registry.js';
 import { installAll } from './install/index.js';
+import { getInstalledSkillIds } from './install/installed.js';
 import { exportSkills } from './export/index.js';
 import { generateClaudeMd } from './export/claude.js';
 import { loadConfig, ensureConfigFile } from './update/config.js';
@@ -316,7 +317,8 @@ async function promptSelection(matched: MatchedSkill[]): Promise<MatchedSkill[]>
 
   process.stderr.write(`  ${bold('Select skills to install')} ${dim('(space toggle · a all · n none · enter install · q cancel)')}\n`);
 
-  const picked = await multiSelect(asScored);
+  const installedIds = getInstalledSkillIds(process.cwd());
+  const picked = await multiSelect(asScored, installedIds);
   const pickedIds = new Set(picked.map((p) => p.id));
   return matched.filter((m) => pickedIds.has(m.id));
 }

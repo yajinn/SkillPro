@@ -1,6 +1,6 @@
 import { emitKeypressEvents } from 'node:readline';
 import type { ScoredSkill } from '../types.js';
-import { bold, orange, dim, gray, yellow, symbols } from './colors.js';
+import { bold, orange, dim, gray, cyan, symbols } from './colors.js';
 import { clusterSkills } from '../score/clustering.js';
 
 interface SelectionState {
@@ -12,32 +12,43 @@ interface SelectionItem {
   skill: ScoredSkill;
   checked: boolean;
   isGroupHeader: boolean;
+  installed: boolean;
   groupLabel?: string;
   groupCount?: number;
   groupChecked?: number;
 }
 
-function buildItems(skills: ScoredSkill[]): SelectionItem[] {
+function buildItems(
+  skills: ScoredSkill[],
+  installedIds: Set<string>,
+): SelectionItem[] {
   const groups = clusterSkills(skills);
   const items: SelectionItem[] = [];
 
   for (const [category, groupSkills] of groups) {
+    // Installed skills default UNCHECKED (don't overwrite without intent),
+    // fresh ones default CHECKED (user uses space to drop unwanted ones).
+    const defaultCheckedCount = groupSkills.filter(
+      (s) => !installedIds.has(s.id),
+    ).length;
+
     items.push({
       skill: groupSkills[0]!,
       checked: false,
       isGroupHeader: true,
+      installed: false,
       groupLabel: category || 'other',
       groupCount: groupSkills.length,
-      groupChecked: groupSkills.length, // all checked initially
+      groupChecked: defaultCheckedCount,
     });
 
-    // All skills start CHECKED. User presses space to uncheck what they
-    // don't want. Enter installs the remaining. 'n' deselects all.
     for (const skill of groupSkills) {
+      const installed = installedIds.has(skill.id);
       items.push({
         skill,
-        checked: true,
+        checked: !installed,
         isGroupHeader: false,
+        installed,
       });
     }
   }
@@ -56,20 +67,27 @@ function renderLine(item: SelectionItem, isActive: boolean): string {
   const checkbox = item.checked
     ? orange(symbols.checkboxOn)
     : dim(symbols.checkboxOff);
-  const name = isActive ? bold(item.skill.name) : item.skill.name;
+
+  // Installed skills: name in cyan + "installed" badge; fresh skills use default color.
+  const rawName = item.skill.name;
+  const name = item.installed
+    ? (isActive ? bold(cyan(rawName)) : cyan(rawName))
+    : (isActive ? bold(rawName) : rawName);
+  const badge = item.installed ? ' ' + cyan(dim('installed')) : '';
   const score = dim(`(${String(item.skill.score).padStart(3)})`);
 
   // Truncate description to fit terminal
   const cols = process.stdout.columns || 80;
-  const prefix = `  ${pointer} ${checkbox} ${name} ${score}  `;
-  const plainPrefix = prefix.replace(/\x1b\[\d+m/g, '');
+  const prefix = `  ${pointer} ${checkbox} ${name}${badge} ${score}  `;
+  const plainPrefix = prefix.replace(/\x1b\[[\d;]+m/g, '');
   const maxDesc = Math.max(0, cols - plainPrefix.length - 2);
   let desc = item.skill.description;
   if (desc.length > maxDesc) {
     desc = desc.slice(0, maxDesc - 1) + '\u2026';
   }
 
-  return `  ${pointer} ${checkbox} ${name} ${score}  ${gray(desc)}`;
+  const descColored = item.installed ? dim(desc) : gray(desc);
+  return `  ${pointer} ${checkbox} ${name}${badge} ${score}  ${descColored}`;
 }
 
 function render(state: SelectionState): string {
@@ -118,14 +136,17 @@ function updateGroupHeaders(items: SelectionItem[]): void {
 
 export async function multiSelect(
   skills: ScoredSkill[],
+  installedIds: Set<string> = new Set(),
 ): Promise<ScoredSkill[]> {
   if (!process.stdin.isTTY) {
-    // Non-interactive: return all recommended
-    return skills.filter((s) => s.relevance === 'recommended');
+    // Non-interactive: return all recommended that aren't already installed
+    return skills.filter(
+      (s) => s.relevance === 'recommended' && !installedIds.has(s.id),
+    );
   }
 
   const state: SelectionState = {
-    items: buildItems(skills),
+    items: buildItems(skills, installedIds),
     cursor: 0,
   };
 
