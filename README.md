@@ -16,16 +16,19 @@ npx skillpro
 ```
 ┌─ Detect ──────────────┐   ┌─ Match ───────────────┐   ┌─ Install ─────────────┐
 │ package.json reader   │ → │ Registry lookup       │ → │ npx skills add <repo> │
-│ priority hierarchy    │   │ priority scoring      │   │ + CLAUDE.md updater   │
-│ build-noise filtering │   │ dedup + alternatives  │   │ + Cursor/Codex export │
+│ priority hierarchy    │   │ priority scoring      │   │ project-scoped        │
+│ build-noise filtering │   │ dedup + alternatives  │   │ + CLAUDE.md updater   │
 └───────────────────────┘   └───────────────────────┘   └───────────────────────┘
 ```
 
-No network calls at runtime. The skill registry ships with the package (3,906 skills from skills.sh + Anthropic's official catalog), updated via `npm run build:registry`.
+No network calls at runtime for matching. The skill registry ships with the package (3,906 skills from skills.sh + Anthropic's official catalog), updated via `npm run build:registry`. The actual skill content is fetched once per install from the source repo.
 
 ## Quick Start
 
 ```bash
+# Interactive: stack detection → checkbox picker → install
+npx skillpro
+
 # Preview recommendations without installing
 npx skillpro --dry-run
 
@@ -41,6 +44,19 @@ npx skillpro --export cursor
 # Export to Codex AGENTS.md
 npx skillpro --export codex
 ```
+
+In the interactive picker:
+
+| Key | Action |
+|-----|--------|
+| `↑` `↓` / `k` `j` | Move cursor |
+| `space` | Toggle current skill |
+| `a` | Check all |
+| `n` | Uncheck all |
+| `enter` | Install checked skills |
+| `q` / `esc` | Cancel |
+
+Already-installed skills show in **cyan** with an `installed` badge and start unchecked so pressing `enter` doesn't overwrite them. Press `space` on an installed skill to re-install it.
 
 ## Detection
 
@@ -70,6 +86,21 @@ Skills are sorted by priority:
 Deduplication groups skills doing the same job (e.g. `react-best-practices` and `vercel-react-best-practices`). The highest-priority one is recommended; the rest become alternatives shown with `--all`.
 
 Every project gets **at most 20 recommendations** — the best ones, not all matches.
+
+## Project-Scoped Install
+
+Skills land in the current project, not your home directory:
+
+```
+your-project/
+├── .claude/skills/<id>/SKILL.md   ← Claude Code reads from here
+├── skills-lock.json                ← commit this for reproducible installs
+└── package.json
+```
+
+`skills-lock.json` pins every skill to a content hash, just like `package-lock.json`. Commit it and the rest of the team gets the same skill set via `npx skills experimental_install`.
+
+Re-running `npx skillpro` on a project that already has skills is safe — the picker detects them from `skills-lock.json` (falling back to scanning `.claude/skills/`), renders them in cyan with an `installed` badge, and defaults their checkbox to unchecked. Nothing gets re-installed unless you explicitly tick the box.
 
 ## Monorepo Support
 
@@ -115,7 +146,7 @@ SkillPro keeps itself fresh via three auto-update layers, all opt-in via config:
 
 **Layer 2 — Registry refresh:** Fetches `skills-registry.json` overlay from GitHub raw with ETag. If `304 Not Modified` → use local cache. Network failure → fall back to bundled. New skills added to skills.sh appear without requiring `npm install`.
 
-**Layer 3 — Skill updates:** Compares installed skill SHAs against registry. Flags outdated skills and breaking changes. User runs `npx skillpro --update` to apply.
+**Layer 3 — Skill updates:** Compares installed skill SHAs against the registry. Flags outdated skills and breaking changes in the next run's header so you know what's stale.
 
 **Config at `~/.config/skillpro/config.json`:**
 
@@ -150,8 +181,10 @@ Privacy-first: no telemetry by default. Network calls are minimized via ETag (30
 ## Example Output
 
 ```
-  SkillPro v2.6.0
-  Zero-config skill discovery for AI agents
+  ╭──────────────────────────────────────────────────────╮
+  │ ✦ SKILLPRO                              ● v2.7.7     │
+  │ Zero-config skill discovery for AI coding agents     │
+  ╰──────────────────────────────────────────────────────╯
 
   ✔ typescript / Next.js
   Next.js, React, Supabase, shadcn/ui, Tailwind CSS
@@ -160,19 +193,21 @@ Privacy-first: no telemetry by default. Network calls are minimized via ETag (30
   ✔ 20 skills (from 2805 matches)
   187 alternatives hidden — use --all to see
 
-  react (11)
-    [x] vercel-react-best-practices  321.1K
-      React and Next.js performance optimization guide with 64 prioritized rules
-    [x] web-design-guidelines  256.7K
-      Audit UI code against Vercel's Web Interface Guidelines
-    [x] next-best-practices  64.7K
-      Comprehensive Next.js development guidelines covering file structure, RSC
-    ...
+  Select skills to install (space toggle · a all · n none · enter install · q cancel)
 
-  supabase (1)
-    [x] supabase-postgres-best-practices  99.7K
-      Postgres performance optimization rules across 8 priority categories
+  react (10/11)
+  > [✓] vercel-react-best-practices  (200)  React and Next.js performance…
+    [✓] web-design-guidelines  (190)  Audit UI code against Vercel's…
+    [ ] next-best-practices installed  (180)  Next.js development guidelines…
+    …
+
+  supabase (1/1)
+    [✓] supabase-postgres-best-practices  (150)  Postgres performance rules…
+
+  11/13 selected
 ```
+
+`[✓]` = will be installed · `[ ]` = will be skipped · `installed` = already present in this project.
 
 ## CLI Reference
 
@@ -183,33 +218,12 @@ Options:
   -y, --yes          Skip confirmation, install all recommended
   --dry-run          Show skills without installing
   --all              Include alternative skills (unchecked)
-  --update           Update installed skills to latest versions
   -v, --verbose      Show error details
-  -a, --agent <ids>  Target specific agents: cursor, claude-code, codex
-  --export <target>  Export after install: cursor, codex
-  -h, --help         Show help
+  -a, --agent <ids>  Target specific agents (cursor,claude-code,codex)
+  --sources <urls>   Add extra federated sources (comma-separated)
+  --export <target>  Export after install (cursor, codex)
+  -h, --help         Show this help
   --version          Show version
-```
-
-### Example: fresh run with auto-update
-
-```
-  SkillPro v2.6.0
-  Zero-config skill discovery for AI agents
-
-  ✔ typescript / Next.js
-  Next.js, Prisma, React, Playwright, Tailwind CSS
-  npm
-
-  ✓ Registry refreshed: 3906 skills
-
-  ↑ Installed skill updates:
-    → next-best-practices    14.2.0 → 15.1.0
-    ⚠ BREAKING prisma-client-api    5.0.0 → 7.0.0
-    Run: npx skillpro --update
-
-  Matching skills...
-  ✔ 20 skills (from 2852 matches)
 ```
 
 ## Architecture
@@ -218,8 +232,9 @@ Options:
 |--------|----------------|
 | `src/detect/stack.ts` | Package manifest reader (JS/Python/Ruby/Go/Rust/Java), monorepo walker, priority hierarchy |
 | `src/registry.ts` | Skill matching, priority scoring, dedup, platform filter |
-| `src/install/skills-sh.ts` | Delegates to `npx skills add` |
+| `src/install/skills-sh.ts` | Delegates to `npx skills add` (project-scoped) |
 | `src/install/direct-fetch.ts` | Direct SKILL.md fetch for non-skills.sh |
+| `src/install/installed.ts` | Detect already-installed skills via `skills-lock.json` |
 | `src/export/claude.ts` | CLAUDE.md managed section |
 | `src/export/cursor.ts` | `.cursor/rules/*.mdc` generator |
 | `src/export/codex.ts` | AGENTS.md managed section |
