@@ -8,10 +8,10 @@
  * frontmatter (description + alwaysApply: false).
  */
 
-import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
 import type { ScoredSkill } from '../types.js';
+import { readInstalledSkill, skillDirCandidates } from '../install/installed.js';
 
 /**
  * Regex to match YAML frontmatter at the start of a file.
@@ -58,36 +58,25 @@ function escapeYamlString(s: string): string {
 }
 
 /**
- * Try to read the SKILL.md content for a given skill.
- * Looks in ~/.claude/skills/<skill-id>/SKILL.md.
+ * Check for non-portable asset directories next to the installed skill.
+ * Checks both project-scoped and home-scoped candidate dirs.
  */
-function readSkillMd(skillId: string): string | null {
-  const path = join(homedir(), '.claude', 'skills', skillId, 'SKILL.md');
-  try {
-    return readFileSync(path, 'utf-8');
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Check for non-portable asset directories.
- */
-function checkNonPortableAssets(skillId: string): string[] {
+function checkNonPortableAssets(projectDir: string, skillId: string): string[] {
   const warnings: string[] = [];
-  const baseDir = join(homedir(), '.claude', 'skills', skillId);
-
-  if (existsSync(join(baseDir, 'scripts'))) {
-    warnings.push(
-      `${skillId}: scripts/ directory not portable to Cursor -- skipped (only the markdown body was copied)`,
-    );
+  for (const baseDir of skillDirCandidates(projectDir, skillId)) {
+    if (!existsSync(baseDir)) continue;
+    if (existsSync(join(baseDir, 'scripts'))) {
+      warnings.push(
+        `${skillId}: scripts/ directory not portable to Cursor -- skipped (only the markdown body was copied)`,
+      );
+    }
+    if (existsSync(join(baseDir, 'references'))) {
+      warnings.push(
+        `${skillId}: references/ directory not portable to Cursor -- skipped (only the markdown body was copied)`,
+      );
+    }
+    break;
   }
-  if (existsSync(join(baseDir, 'references'))) {
-    warnings.push(
-      `${skillId}: references/ directory not portable to Cursor -- skipped (only the markdown body was copied)`,
-    );
-  }
-
   return warnings;
 }
 
@@ -108,8 +97,8 @@ export function exportToCursor(
   mkdirSync(rulesDir, { recursive: true });
 
   for (const skill of skills) {
-    const mdContent = readSkillMd(skill.id);
-    if (!mdContent) {
+    const found = readInstalledSkill(projectDir, skill.id);
+    if (!found) {
       process.stderr.write(
         `  \u2718 ${skill.id}: SKILL.md not found, skipping Cursor export\n`,
       );
@@ -117,12 +106,12 @@ export function exportToCursor(
     }
 
     // Check for non-portable assets and warn
-    const warnings = checkNonPortableAssets(skill.id);
+    const warnings = checkNonPortableAssets(projectDir, skill.id);
     for (const w of warnings) {
       process.stderr.write(`  \u26A0 ${w}\n`);
     }
 
-    const [fm, body] = parseFrontmatter(mdContent);
+    const [fm, body] = parseFrontmatter(found.content);
 
     let description = (fm.description || '').trim();
     if (!description) {

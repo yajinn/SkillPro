@@ -1,6 +1,6 @@
 {
   "name": "skillpro",
-  "version": "2.7.6",
+  "version": "2.7.7",
   "description": "Zero-config federated skill discovery for AI coding agents",
   "type": "module",
   "bin": {

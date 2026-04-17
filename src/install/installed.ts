@@ -5,6 +5,7 @@
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 
 interface SkillsLock {
   version?: number;
@@ -44,4 +45,35 @@ export function getInstalledSkillIds(cwd: string): Set<string> {
   }
 
   return installed;
+}
+
+/**
+ * Return candidate directories where a skill's SKILL.md may live.
+ * Order matters: project-scoped wins over home-global.
+ */
+export function skillDirCandidates(projectDir: string, skillId: string): string[] {
+  return [
+    join(projectDir, '.claude', 'skills', skillId),
+    join(homedir(), '.claude', 'skills', skillId),
+  ];
+}
+
+/**
+ * Read a skill's SKILL.md. Tries the project dir first, then the user home dir.
+ * Returns [content, baseDir] or null when not found.
+ */
+export function readInstalledSkill(
+  projectDir: string,
+  skillId: string,
+): { content: string; baseDir: string } | null {
+  for (const dir of skillDirCandidates(projectDir, skillId)) {
+    const path = join(dir, 'SKILL.md');
+    try {
+      const content = readFileSync(path, 'utf-8');
+      return { content, baseDir: dir };
+    } catch {
+      // try next candidate
+    }
+  }
+  return null;
 }

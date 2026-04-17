@@ -14,8 +14,8 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { homedir } from 'node:os';
 import type { ScoredSkill } from '../types.js';
+import { readInstalledSkill } from '../install/installed.js';
 
 const START_MARKER = '<!-- skillpro:start -->';
 const END_MARKER = '<!-- skillpro:end -->';
@@ -49,17 +49,6 @@ function parseFrontmatter(body: string): [Record<string, string>, string] {
   return [fm, rest];
 }
 
-/**
- * Try to read the SKILL.md content for a given skill.
- */
-function readSkillMd(skillId: string): string | null {
-  const path = join(homedir(), '.claude', 'skills', skillId, 'SKILL.md');
-  try {
-    return readFileSync(path, 'utf-8');
-  } catch {
-    return null;
-  }
-}
 
 /**
  * Render a single skill as a ## section for the managed block.
@@ -84,18 +73,18 @@ function renderSkillSection(skill: ScoredSkill, mdContent: string): string {
 /**
  * Build the full managed block bracketed by markers.
  */
-function renderManagedSection(skills: ScoredSkill[]): string {
+function renderManagedSection(skills: ScoredSkill[], projectDir: string): string {
   const sections: string[] = [];
 
   for (const skill of skills) {
-    const mdContent = readSkillMd(skill.id);
-    if (!mdContent) {
+    const found = readInstalledSkill(projectDir, skill.id);
+    if (!found) {
       process.stderr.write(
         `  \u2718 ${skill.id}: SKILL.md not found, skipping Codex export\n`,
       );
       continue;
     }
-    sections.push(renderSkillSection(skill, mdContent));
+    sections.push(renderSkillSection(skill, found.content));
   }
 
   let inner: string;
@@ -132,7 +121,7 @@ export function exportToCodex(
   projectDir: string,
 ): void {
   const agentsPath = join(projectDir, 'AGENTS.md');
-  const managedBlock = renderManagedSection(skills);
+  const managedBlock = renderManagedSection(skills, projectDir);
 
   let existing = '';
   try {
