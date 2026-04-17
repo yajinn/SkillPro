@@ -44,11 +44,12 @@ export async function installFromSkillsSh(
     };
   }
 
-  // -g installs to user level (~/.claude/skills/), -y skips prompts.
-  // Without -a, skills add doesn't symlink into any agent directory,
-  // so default to claude-code when the user didn't pick agents explicitly.
+  // Project-scoped install (no -g) — skill lands in the user's project dir
+  // (.claude/skills/ under cwd), not in their home directory. -y skips prompts.
+  // Without -a, skills add doesn't symlink into any agent directory, so default
+  // to claude-code when the user didn't pick agents explicitly.
   const agents = args.agents.length > 0 ? args.agents : ['claude-code'];
-  const npxArgs = ['skills', 'add', ownerRepo, '--skill', skill.id, '-y', '-g'];
+  const npxArgs = ['skills', 'add', ownerRepo, '--skill', skill.id, '-y'];
   for (const agent of agents) {
     npxArgs.push('-a', agent);
   }
