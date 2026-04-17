@@ -191,7 +191,7 @@ export async function main(): Promise<void> {
     boost_libraries: [],
     category: s.matchedStack,
     popularity: 0,
-    source: { name: s.source, install_url: s.install_url, commit_sha: null, type: 'registry' },
+    source: { name: s.source, install_url: s.install_url, commit_sha: null, type: s.source === 'skills.sh' ? 'skills-sh' : 'registry' },
     score: s.priority,
     relevance: 'recommended' as const,
   }));
@@ -309,7 +309,7 @@ async function promptSelection(matched: MatchedSkill[]): Promise<MatchedSkill[]>
     boost_libraries: [],
     category: s.matchedStack,
     popularity: 0,
-    source: { name: s.source, install_url: s.install_url, commit_sha: null, type: 'registry' },
+    source: { name: s.source, install_url: s.install_url, commit_sha: null, type: s.source === 'skills.sh' ? 'skills-sh' : 'registry' },
     score: s.priority,
     relevance: 'recommended' as const,
   }));

@@ -59,6 +59,9 @@ export async function installAll(
 
       if (isSkillsSh) {
         result = await installFromSkillsSh(skill, args);
+        // skills.sh CLI knows actual paths; if it still failed, the skill ID
+        // is likely not in their index — direct-fetch with fabricated URL
+        // would 404 too, so don't bother falling back.
       } else {
         result = await installDirectFetch(skill);
       }
