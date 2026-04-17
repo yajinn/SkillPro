@@ -5,9 +5,27 @@
  * direct-fetch) and runs them with a concurrency limit.
  */
 
+import { execFile } from 'node:child_process';
 import type { ScoredSkill, InstallResult, CliArgs } from '../types.js';
 import { installFromSkillsSh } from './skills-sh.js';
 import { installDirectFetch } from './direct-fetch.js';
+
+/**
+ * Warm up the `skills` CLI in npx's cache so concurrent installs don't race
+ * on the atomic rename that npx performs the first time it extracts a package.
+ * Without this, running N `npx skills add` children in parallel causes
+ * ENOTEMPTY errors — only the first child wins the rename.
+ */
+async function primeSkillsCli(): Promise<void> {
+  return new Promise((resolve) => {
+    execFile(
+      'npx',
+      ['-y', 'skills', '--version'],
+      { timeout: 120_000 },
+      () => resolve(), // ignore result — real install will surface any error
+    );
+  });
+}
 
 /**
  * Run async tasks with a concurrency limit. No external dependencies.
@@ -51,6 +69,12 @@ export async function installAll(
   if (skills.length === 0) return [];
 
   const CONCURRENCY_LIMIT = 6;
+
+  // If any skill needs the skills.sh CLI, prime it once so concurrent children
+  // don't race each other during the first-time npx extraction.
+  if (skills.some((s) => s.source.type.includes('skills-sh'))) {
+    await primeSkillsCli();
+  }
 
   const tasks = skills.map((skill) => {
     return async (): Promise<InstallResult> => {
