@@ -14,8 +14,8 @@
     "build": "tsc -p tsconfig.build.json && rm -rf dist/config && cp -r src/config dist/config",
     "build:registry": "tsx scripts/build-registry.ts",
     "dev": "tsx src/index.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest --passWithNoTests",
     "lint": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
